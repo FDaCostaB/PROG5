@@ -25,40 +25,74 @@ Contact: Guillaume.Huard@imag.fr
 #include "util.h"
 
 struct memory_data {
+    size_t size;
+    int is_big_endian;
+    uint8_t *data;
 };
 
 memory memory_create(size_t size, int is_big_endian) {
-    memory mem=NULL;
+    memory mem=(memory) malloc(sizeof(struct memory_data));
+    mem->size=size;
+    mem->is_big_endian=is_big_endian;
+    mem->data = (uint8_t *) malloc(sizeof(uint8_t)*size);
     return mem;
 }
 
 size_t memory_get_size(memory mem) {
-    return 0;
+    return mem->size;
 }
 
 void memory_destroy(memory mem) {
+    free(mem->data);
+    free(mem);
 }
 
 int memory_read_byte(memory mem, uint32_t address, uint8_t *value) {
-    return -1;
+    if(address >=memory_get_size(mem)) return -1;
+    *value = *((uint8_t *) (mem->data+address));
+    return 0;
 }
 
 int memory_read_half(memory mem, uint32_t address, uint16_t *value) {
-    return -1;
+    if(address>=memory_get_size(mem)) return -1;
+    if(address%2!=0) return -1;
+    *value = *((uint16_t *) (mem->data+address));
+    if(is_big_endian() != mem->is_big_endian )
+        *value = reverse_2(*value);
+    return 0;
 }
 
 int memory_read_word(memory mem, uint32_t address, uint32_t *value) {
-    return -1;
+    if(address>=memory_get_size(mem)) return -1;
+    if(address%4!=0) return -1;
+    *value = * ((uint32_t *) (mem->data+address));
+    if(is_big_endian() != mem->is_big_endian )
+        *value = reverse_4(*value);
+    return 0;
 }
 
 int memory_write_byte(memory mem, uint32_t address, uint8_t value) {
-    return -1;
+    if(address>=memory_get_size(mem)) return -1;
+    mem->data[address]=value;
+    return 0;
 }
 
 int memory_write_half(memory mem, uint32_t address, uint16_t value) {
-    return -1;
+    if(address>=memory_get_size(mem)) return -1;
+    if(address%2!=0) return -1;
+    if(is_big_endian() != mem->is_big_endian )
+        value = reverse_2(value);
+    for(int i = 0; i<2;i++)
+        mem->data[address+i] = * ( ((uint8_t *) &value) +i);
+    return 0;
 }
 
 int memory_write_word(memory mem, uint32_t address, uint32_t value) {
-    return -1;
+    if(address>=memory_get_size(mem)) return -1;
+    if(address%4!=0) return -1;
+    if(is_big_endian() != mem->is_big_endian )
+        value = reverse_4(value);
+    for(int i = 0; i<4;i++)
+            mem->data[address+i] = * ( ((uint8_t *) &value) +i);
+    return 0;
 }
