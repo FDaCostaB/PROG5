@@ -29,19 +29,40 @@ Contact: Guillaume.Huard@imag.fr
 #include "util.h"
 
 static int arm_execute_instruction(arm_core p) {
-//    arm_fetch(p,)
-// lors de l’initialisation, remplir un tableau
-// contenant des pointeurs (de fonctions)
-// vers les routines de decodage
-//    tableau[0] = routine_pour_valeur_champ_0;
-//    tableau[1] = routine_pour_valeur_champ_1;
-//...
-//    uint_32t mot;
-//    uint8_t champ;
-//...
-//    champ = (uint8_t)((mot & 0x38000) >> 15);
-// appel de la routine correspondante
-//    tableau[champ](mot, ...);
+    uint32_t ins;
+    arm_fetch(p,&ins);
+    printf("%08x \n",ins);
+    uint8_t champ = (uint8_t)((ins & 0xe000000) >> 25);
+    printf("%d \n",champ);
+    switch (champ) {
+        case 0:
+            arm_data_processing_shift(p, ins);
+            break;
+        case 1:
+            arm_data_processing_shift(p, ins);
+            break;
+        case 2:
+
+            break;
+        case 3:
+
+            break;
+        case 4:
+
+            break;
+        case 5:
+            arm_branch(p, ins);
+            break;
+        case 6:
+
+            break;
+        case 7:
+
+            break;
+        default:
+            return 1;
+            break;
+    }
 
     return 0;
 }

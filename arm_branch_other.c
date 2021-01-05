@@ -28,7 +28,11 @@ Contact: Guillaume.Huard@imag.fr
 
 
 int arm_branch(arm_core p, uint32_t ins) {
-    return UNDEFINED_INSTRUCTION;
+    if( (ins>>24) & 1 ) arm_write_register(p, 14, arm_read_register(p,15));
+    uint32_t val = ins | (get_bit(ins, 24) ? ~0<<25: 0);
+    val = val << 2;
+    arm_write_register(p, 15, arm_read_register(p,15)+val);
+    return 0;
 }
 
 int arm_coprocessor_others_swi(arm_core p, uint32_t ins) {

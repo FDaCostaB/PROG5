@@ -47,7 +47,6 @@ void registers_destroy(registers r) {
 
 uint8_t get_mode(registers r) {
     return r->mode;
-
 }
 
 int current_mode_has_spsr(registers r) {
