@@ -61,6 +61,25 @@ Contact: Guillaume.Huard@imag.fr
 #define PrivMask    0x0000000F
 #define StateMask   0x00000020
 
+typedef enum
+{
+    EQ,
+    NE,
+    CS_HS,
+    CC_LO,
+    MI,
+    PL,
+    VS,
+    VC,
+    HI,
+    LS,
+    GE,
+    LT,
+    GT,
+    LE,
+    AL
+} cond;
+
 char *arm_get_exception_name(unsigned char exception);
 char *arm_get_mode_name(uint8_t mode);
 char *arm_get_register_name(uint8_t reg);

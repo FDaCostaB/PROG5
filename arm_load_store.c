@@ -27,7 +27,17 @@ Contact: Guillaume.Huard@imag.fr
 #include "debug.h"
 
 int arm_load_store(arm_core p, uint32_t ins) {
-    return UNDEFINED_INSTRUCTION;
+    uint32_t rn = (ins << ( sizeof(ins)*8 - 19) )>> 28; //adresse
+    uint32_t rd = (ins << ( sizeof(ins)*8 - 15) ) >> 28;
+    uint32_t operateur = (ins << ( sizeof(ins)*8 -20) ) >> 20; //OP = LDR ou STR
+    if(operateur == 1){ // On execute le LDR
+        uint32_t val;
+        arm_read_word(p,rn,&val);
+        arm_write_register(p,rd,val);
+    } else {
+        arm_write_word(p,rn,arm_read_register(p,rd));
+    }
+    return 0;
 }
 
 int arm_load_store_multiple(arm_core p, uint32_t ins) {

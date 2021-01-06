@@ -36,8 +36,6 @@ static int arm_execute_instruction(arm_core p) {
     printf("%d \n",champ);
     switch (champ) {
         case 0:
-            arm_data_processing_shift(p, ins);
-            break;
         case 1:
             arm_data_processing_shift(p, ins);
             break;
