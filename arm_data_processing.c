@@ -112,6 +112,3 @@ int shifter_operand(arm_core p, uint32_t ins,uint32_t (*fonction)(uint32_t val1,
 	}
 
 }
-int arm_data_processing_immediate_msr(arm_core p, uint32_t ins) {
-    return UNDEFINED_INSTRUCTION;
-}

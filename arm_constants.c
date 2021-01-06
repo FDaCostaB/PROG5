@@ -22,6 +22,7 @@ Contact: Guillaume.Huard@imag.fr
 */
 #include <stdlib.h>
 #include "arm_constants.h"
+#include "util.h"
 
 static char *arm_mode_names[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                           0, "USR", "FIQ", "IRQ", "SVC", 0, 0, 0,
@@ -49,3 +50,4 @@ char *arm_get_mode_name(uint8_t mode) {
 char *arm_get_register_name(uint8_t reg) {
     return arm_register_names[reg];
 }
+
