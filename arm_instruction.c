@@ -33,7 +33,6 @@ static int arm_execute_instruction(arm_core p) {
     arm_fetch(p,&ins);
     printf("%08x \n",ins);
     uint8_t champ = (uint8_t)((ins & 0xe000000) >> 25);
-    printf("%d \n",champ);
     switch (champ) {
         case 0:
         case 1:
