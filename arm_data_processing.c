@@ -26,8 +26,275 @@ Contact: Guillaume.Huard@imag.fr
 #include "arm_branch_other.h"
 #include "util.h"
 #include "debug.h"
+void updateZN(arm_core p,uint32_t resultat){
+
+
+    //indicateur Z
+    if(resultat == 0){
+        arm_write_cpsr(p, (arm_read_cpsr(p) | (1<<30)));
+    }
+    else
+        arm_write_cpsr(p, (arm_read_cpsr(p) & (~(1<<30))));
+
+    //indicateur N
+    if (get_bit(resultat,31) == 1)
+    {
+        arm_write_cpsr(p, (arm_read_cpsr(p) | (1<<31)));
+    }
+    else
+        arm_write_cpsr(p, (arm_read_cpsr(p) & (~(1<<31))));
+
+
+}
+
+uint32 arm_and (uint32_t val1, uint32_t val2){
+    uint32_t  result;
+    result= val1 & val2;
+    return result;
+
+
+}
+
+uint32 arm_eor (uint32_t val1, uint32_t val2){
+    uint32_t  result;
+    result= val1 ^  val2;
+    return result;
+
+}
+
+uint32 arm_sub (uint32_t val1, uint32_t val2){
+    uint32_t  result;
+    result= val1 -  val2;
+    return result;
+
+}
+
+uint32 arm_orr(uint32_t val1, uint32_t val2){
+    uint32_t  result;
+    result= val1 | val2;
+    return result;
+
+}
+uint32 arm_add(uint32_t val1, uint32_t val2){
+    uint32_t  result;
+    result= val1 + val2;
+    return result;
+}
+
+uint32 arm_bic(uint32_t val1, uint32_t val2){
+    uint32_t  result;
+    result= val1 + & (~val_2);
+    return result;
+}
+
+void arm_mov(arm_core p,uint8_t rd,uint32_t val,int s){
+
+    arm_write_register(p,rd, val);
+   uint32_t result=arm_read_register(p,rd);
+    //si le registre destination est en mode user
+    if(s){
+        updateZN(p,result);
+    }
+}
+
+uint32 arm_sbc(arm_core p,uint32_t val1, uint32_t val2){
+       uint32_t  result;
+       int c = get_bit(arm_read_cpsr(p),29);
+       result= val1 - val2 - !c;
+
+    return result;
+}
+uint32 arm_adc(arm_core p,uint32_t val1,uint32_t val2){
+
+      uint32_t result;
+      int c = get_bit(arm_read_cpsr(p),29);
+
+      result= val1 + val2 + c;
+
+    return result
+}
+void arm_mvn(arm_core p,uint8_t rd, uint32_t val,int s){
+
+    arm_write_register(p,rd, (~val);
+
+    /*si le registre de dest est en mode user*/
+    if(s){
+        updateZN(p,resultat);
+    }
+
+}
+
+void arm_teq(arm_core p,uint32_t val1,uint32_t val2){
+
+    //Update flags after Rn EOR shifter_operand
+
+    uint32_t result;
+    int c = read_C(p);
+
+    printf("C before TEQ processing = %d\n",c);
+
+
+    resultat=val1 ^ val2;
+
+    updateZN(p,resultat);
+
+    // Indicateur C;
+    //C=0 dans un xor
+    arm_write_cpsr(p, (arm_read_cpsr(p) & (~(1<<29))));
+
+
+}
+
+
+void arm_tst(arm_core p,uint32_t val1,uint32_t val2){
+
+
+    uint32_t result;
+
+    result=val1 & val2;
+
+    updateZN(p,resultat);
+
+    arm_write_cpsr(p, (arm_read_cpsr(p) & (~(1<<29))));
+
+}
+
+void arm_cmp(arm_core p,uint32_t val1,uint32_t val2){
+
+
+    int c = read_C(p);
+    int v = read_V(p);
+    uint32_t result;
+    operande_1=arm_read_register(p,rn);
+
+    result=val1 - val2;
+
+
+    updateZN(p,result);
+
+
+    //indicateur V
+    if(get_bit(val1,31) == get_bit(val2,31) && get_bit(val1,31) != get_bit(resultat,31)){
+        arm_write_cpsr(p, (arm_read_cpsr(p) | (1<<28)));
+    }
+    else
+        arm_write_cpsr(p, (arm_read_cpsr(p) & (~(1<<28))));
+
+    v = read_V(p);
+    printf("V after CMP processing = %d\n",v);
+
+    // Indicateur C
+    if( (0xffffffff - val1) < ~val2 + 0x1 && !c){
+        arm_write_cpsr(p, set_bit(arm_read_cpsr(p), 29));
+    }
+    if( (0xffffffff - val1) >= ~val2 + 0x1 && c) {
+        arm_write_cpsr(p, clr_bit(arm_read_cpsr(p), 29));
+    }
+
+
+}
+
+void arm_cmn(arm_core p,uint32_t  val1,uint32_t val2){
+
+    //Update flags after Rn + shifter_operand
+
+    uint32_t result;
+    resultat = val1 + val2;
+
+    maj_ZN(p,resultat);
+
+    //indicateur V
+    if(get_bit(val1,31) == get_bit(val2,31) && get_bit(val1,31) != get_bit(resultat,31)){
+
+        arm_write_cpsr(p, (arm_read_cpsr(p) | (1<<28)));
+    }
+    else
+        arm_write_cpsr(p, (arm_read_cpsr(p) & (~(1<<28))));
+
+
+
+    // Indicateur C
+
+    if( (0xffffffff - val1) < val2 && !c){
+        arm_write_cpsr(p, set_bit(arm_read_cpsr(p), 29));
+    }
+    if( (0xffffffff - val1) >= val2 && c) {
+        arm_write_cpsr(p, clr_bit(arm_read_cpsr(p), 29));
+    }
+
+
+}
+
+void arm_rsb(arm_core p,uint8_t rn,uint8_t rd,uint32_t val_sh,  int s){
+
+    //Rd := shifter_operand - Rn
+    uint32_t result,val_rn;
+    int c = read_C(p);
+    int v = read_V(p);
+
+
+    valrn=arm_read_register(p,rn);
+    result= val_sh - val_rn;
+    arm_write_register(p,rd, result);
+
+    if(s){
+
+        //mis a jour Z et N
+        maj_ZN(p,result);
+
+        //indicateur C
+        if( (0xffffffff - val_sh) < ~val_rn + 0x1 && !c){
+            arm_write_cpsr(p, set_bit(arm_read_cpsr(p), 29));
+        }
+        if( (0xffffffff - val_sh) >= ~val_rn + 0x1 && c) {
+            arm_write_cpsr(p, clr_bit(arm_read_cpsr(p), 29));
+        }
+
+        //indicateur V
+        if(get_bit(val_sh,31) == get_bit(val_rn,31) && get_bit(val_sh,31) != get_bit(resultat,31)){
+            arm_write_cpsr(p, (arm_read_cpsr(p) | (1<<28)));
+        }
+        else
+            arm_write_cpsr(p, (arm_read_cpsr(p) & (~(1<<28))));
+    }
+
+
+
+}
+
+void arm_rsc(arm_core p,uint8_t rn,uint8_t rd,uint32_t val_sh,  int s){
+
+    uint32_t result,val_rn;
+    val_rn=arm_read_register(p,rn);
+
+    resultat= val_sh - val_rn - !c;
+    arm_write_register(p,rd, result);
+
+    if(s){
+        maj_ZN(p,result);
+
+        //indicateur C
+        if( (0xffffffff - val_sh - c) < ~val_rn + 0x2 && !c){
+            arm_write_cpsr(p, set_bit(arm_read_cpsr(p), 29));
+        }
+        if( (0xffffffff - val_sh - c) >= ~val_rn + 0x2 && c) {
+            arm_write_cpsr(p, clr_bit(arm_read_cpsr(p), 29));
+        }
+
+        //indicateur V
+        if(get_bit(val_sh,31) == get_bit(val_rn,31) && get_bit(val_sh,31)== (~(get_bit(arm_read_cpsr(p),29))) && get_bit(val_sh,31) != get_bit(resultat,31)){
+            arm_write_cpsr(p, (arm_read_cpsr(p) | (1<<28)));
+        }
+        else
+            arm_write_cpsr(p, (arm_read_cpsr(p) & (~(1<<28))));
+    }
+
+
+
+}
 
 /* Decoding functions for different classes of instructions */
+/*
 int arm_data_processing_shift(arm_core p, uint32_t ins) {
 	uint8_t opcode = (uint8_t)((ins & 0xf00000) >> 20);
 	switch (opcode){
@@ -82,7 +349,7 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 	}
     return UNDEFINED_INSTRUCTION;
 }
-
+*/
 int shifter_operand(arm_core p, uint32_t ins,uint32_t (*fonction)(uint32_t val1,uint32_t val2) ){
 	uint32_t rn = (ins << (sizeof(ins) - 19)) >> 28; //adresse registre source
 	uint32_t rd = (ins << (sizeof(ins) - 15)) >> 28; //adresse registre destination
