@@ -293,13 +293,15 @@ void arm_rsc(arm_core p,uint8_t rn,uint8_t rd,uint32_t val_sh,  int s){
 
 }
 
+uint32_t arm_and (uint32_t val1, uint32_t val2);
+
 /* Decoding functions for different classes of instructions */
 /*
 int arm_data_processing_shift(arm_core p, uint32_t ins) {
 	uint8_t opcode = (uint8_t)((ins & 0xf00000) >> 20);
 	switch (opcode){
 		case 0:
-			arm_and(p,ins);
+			apply(p,ins,arm_and);
 			break;
 		case 1:
 			arm_eor(p,ins);
@@ -354,19 +356,20 @@ int shifter_operand(arm_core p, uint32_t ins,uint32_t (*fonction)(uint32_t val1,
 	uint32_t rn = (ins << (sizeof(ins) - 19)) >> 28; //adresse registre source
 	uint32_t rd = (ins << (sizeof(ins) - 15)) >> 28; //adresse registre destination
 	uint32_t operateur = (ins << sizeof(ins) -20) >> 20; //I
-	uint32_t shOpAdd = (ins & 0xfff); //bits shifter operand
 	uint32_t val1;
 	uint32_t val2;
 	uint32_t res;
 
-	if (operateur==1){ //valeur immediate 
-		val2 = shOpAdd & 0xff;
+	if (operateur==1){ //32-bit immediate -- a modifier pour valeurs interdites 
+		uint8_t rotation = (uint8_t)((ins & 0xf00) >> 8);
+		uint8_t immed_8;
 		memory_read_word(p->mem,rn,&val1);
-		res = fonction(val1,val2); //!! rotate_imm ??
-		arm_write_register(p,rd,res);
+		immed_8 = (uint8_t) ins & 0xff;
+		immed_8 = (immed_8 >> rotation*2) | (immed_8 << (8-rotation*2)); //rotation de rotation_imm x 2 bits 
+		val2 = (uint32_t)immed_8;
 	} else {
-		if (shOpAdd <= 15){//shifter_operand = Rm
-			uint32_t rm = (shOpAdd & 0xf);
+		if (shifter_op<= 15){//shifter_operand = Rm
+			uint32_t rm = (shifter_op & 0xf);
 			memory_read_word(p->mem,rn,&val1);
 			memory_read_word(p->mem,rm,&val2);
 			res = val1+val2;
@@ -377,5 +380,7 @@ int shifter_operand(arm_core p, uint32_t ins,uint32_t (*fonction)(uint32_t val1,
 		}
 	
 	}
+	res = fonction(val1,val2); //a modifier pour les fonctions a un seul paramètres ex MOV/MNV
+	arm_write_register(p,rd,res);
 
 }
