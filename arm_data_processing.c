@@ -366,7 +366,7 @@ int decode_operand(arm_core p, uint32_t ins, uint32_t *val_1, uint32_t *val_2){ 
 	
 	memory_read_word(p->mem,rn,val_1);
 
-	if (bit_25==1){ //32-bit immediate -- a modifier pour valeurs interdites 
+	if (bit_25==1){ //32-bit immediate
 		uint8_t rotation_imm = (uint8_t)((ins & 0xf00) >> 8);
 		uint8_t immed_8;
 		
