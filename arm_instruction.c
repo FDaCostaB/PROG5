@@ -29,20 +29,65 @@ Contact: Guillaume.Huard@imag.fr
 #include "util.h"
 
 static int arm_execute_instruction(arm_core p) {
+    uint32_t instruction;
+    if(arm_fetch(p, &instruction)){
+        exit(EXIT_FAILURE).
+    }
+    else{
+        switch(get_bits(instruction, 27, 25))
+        {
+            case 0b000:
+                /* miscellaneous*/
+                break;
+            case 0b001:
+                /* Move immediate to status register */
+                /* Undefined instruction  */
+                /* Data processing immediate */
+                break;
+            case 0b010:
+                arm_load_store(p, instruction);
+                break;
+            case 0b011:
+                /* Media instructions */
+                /* Load/store register offset */
+                break;
+            case 0b100:
+                arm_load_store_multiple(p, instruction);
+                break;
+            case 0b101:
+                arm_branch(p, instruction);
+                break;
+            case 0b110:
+                arm_coprocessor_load_store(p, instruction);
+                break;
+            case 0b111:
+                arm_coprocessor_others_swi(p, instruction);
+                break;
+            default:
+                break;
+        }
+    }
+    return 0;
+}
+
+static int arm_execute_instruction(arm_core p) {
     uint32_t ins;
     arm_fetch(p,&ins);
     printf("%08x \n",ins);
-    uint8_t champ = (uint8_t)((ins & 0xe000000) >> 25);
+    uint8_t champ = (uint8_t)get_bits(instruction, 27, 25);
     switch (champ) {
         case 0:
         case 1:
+            /* Move immediate to status register */
+            /* Undefined instruction  */
+            /* Data processing immediate */
             arm_data_processing_shift(p, ins);
             break;
         case 2:
-
-            break;
         case 3:
-
+            /* Media instructions */
+            /* Load/store register offset */
+            arm_load_store(p, instruction);
             break;
         case 4:
 

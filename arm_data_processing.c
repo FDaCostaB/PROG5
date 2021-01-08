@@ -291,12 +291,7 @@ void arm_rsc(arm_core p,uint8_t rn,uint8_t rd,uint32_t val_sh,  int s){
         else
             arm_write_cpsr(p, (arm_read_cpsr(p) & (~(1<<28))));
     }
-
-
-
 }
-
-uint32_t arm_and (uint32_t val1, uint32_t val2);
 
 /* Decoding functions for different classes of instructions */
 /*
