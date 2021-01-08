@@ -27,15 +27,15 @@ Contact: Guillaume.Huard@imag.fr
 
 
 void updateZN(arm_core p,uint32_t resultat);
-uint32 arm_and (uint32_t val1, uint32_t val2);
-uint32 arm_eor (uint32_t val1, uint32_t val2);
-uint32 arm_sub (uint32_t val1, uint32_t val2);
-uint32 arm_orr(uint32_t val1, uint32_t val2);
-uint32 arm_add(uint32_t val1, uint32_t val2);
-uint32 arm_bic(uint32_t val1, uint32_t val2);
+uint32_t arm_and (uint32_t val1, uint32_t val2);
+uint32_t arm_eor (uint32_t val1, uint32_t val2);
+uint32_t arm_sub (uint32_t val1, uint32_t val2);
+uint32_t arm_orr(uint32_t val1, uint32_t val2);
+uint32_t arm_add(uint32_t val1, uint32_t val2);
+uint32_t arm_bic(uint32_t val1, uint32_t val2);
 void arm_mov(arm_core p,uint8_t rd,uint32_t val,int s);
-uint32 arm_sbc(arm_core p,uint32_t val1, uint32_t val2);
-uint32 arm_adc(arm_core p,uint32_t val1,uint32_t val2);
+uint32_t arm_sbc(arm_core p,uint32_t val1, uint32_t val2);
+uint32_t arm_adc(arm_core p,uint32_t val1,uint32_t val2);
 void arm_mvn(arm_core p,uint8_t rd, uint32_t val,int s);
 void arm_teq(arm_core p,uint32_t val1,uint32_t val2);
 void arm_tst(arm_core p,uint32_t val1,uint32_t val2);

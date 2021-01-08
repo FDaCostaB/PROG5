@@ -26,9 +26,69 @@ Contact: Guillaume.Huard@imag.fr
 #include "util.h"
 #include "debug.h"
 
+cond arm_get_cond(uint32_t ins){
+    uint8_t val = (uint8_t)((ins & 0xf0000000) >> 28);
+    return (cond) val;
+}
+
+int ConditionPasse(arm_core p,uint32_t ins){
+    uint32_t cpsr = arm_read_cpsr(p);
+    switch (arm_get_cond(ins)) {
+        case EQ:
+            return get_bit(cpsr,Z);
+            break;
+        case NE:
+            return !get_bit(cpsr,Z);
+            break;
+        case CS_HS:
+            return get_bit(cpsr,C);
+            break;
+        case CC_LO:
+            return !get_bit(cpsr,C);
+            break;
+        case MI:
+            return get_bit(cpsr,N);
+            break;
+        case PL:
+            return !get_bit(cpsr,N);
+            break;
+        case VS:
+            return get_bit(cpsr,V);
+            break;
+        case VC:
+            return !get_bit(cpsr,V);
+            break;
+        case HI:
+            return get_bit(cpsr,C) && !get_bit(cpsr,Z);
+            break;
+        case LS:
+            return !get_bit(cpsr,C) || get_bit(cpsr,Z);
+            break;
+        case GE:
+            return get_bit(cpsr,N) == get_bit(cpsr,V);
+            break;
+        case LT:
+            return get_bit(cpsr,N) != get_bit(cpsr,V);
+            break;
+        case GT:
+            return !get_bit(cpsr,Z) && (get_bit(cpsr,N) == get_bit(cpsr,V));
+            break;
+        case LE:
+            return get_bit(cpsr,Z) || (get_bit(cpsr,N) != get_bit(cpsr,V));
+            break;
+        case AL:
+            return 1;
+            break;
+        default:
+            return 0;
+            break;
+    }
+}
+
 int arm_load_store(arm_core p, uint32_t ins) {
     uint32_t rn = (ins << ( sizeof(ins)*8 - 19) )>> 28; //adresse??
     uint32_t address = 0;
+
     uint32_t rd = (ins << ( sizeof(ins)*8 - 15) ) >> 28;
     uint32_t operateur = get_bits(instruction, 20, 20); //OP = LDR ou STR (Bit L)
     uint32_t I = get_bits(instruction, 25, 25);
@@ -38,22 +98,17 @@ int arm_load_store(arm_core p, uint32_t ins) {
     uint32_t W = get_bits(instruction, 21, 21);
     // On execute le LDR
     if(operateur == 1){
-        uint32_t val;
-        arm_read_word(p,rn,&val);
-        arm_write_register(p,rd,val);
-    } else {
         if (I==0){
-            if(P==1 || P==0 && ConditionPassed(cond)){
+            if(P==1 || ( P==0 && ConditionPassed(p,ins) ) ){
                 if(U==1){
                     address = rn + offset_12;
                 } else {
                     address = rn - offset_12;
                 }
             }
-            if (B==1)arm_write_byte(p,address,arm_read_register(p,rd)) else arm_write_word(p,address,arm_read_register(p,rd));
-            if (ConditionPassed(cond) && ( W==1 || P==0 ) ) Rn = address; // P==0 rn devrait remplacer address dans le bloc de calcul
         } else {
-            if(P==1 || P==0 && ConditionPassed(cond)){
+            uint32_t index = 0;
+            if(P==1 || ( P==0 && ConditionPassed(p,ins) )){
                 switch(shift) {
                     case 0b00 : /* LSL */
                         index = Rm Logical_Shift_Left shift_imm;
@@ -87,23 +142,30 @@ int arm_load_store(arm_core p, uint32_t ins) {
                     address = Rn - index
                 }
             }
-            if (B==1)arm_write_byte(p,address,arm_read_register(p,rd)) else arm_write_word(p,address,arm_read_register(p,rd));
-            if (ConditionPassed(cond) && ( W==1 || P==0 ) ) Rn = address;// P==0 rn devrait remplacer address dans le bloc de calcul
-            }
         }
-    if ConditionPassed(cond){
-        if (CP15_reg1_Ubit == 0)
-            data = Memory[address,4] Rotate_Right (8 * address[1:0])
-        else /* CP15_reg_Ubit == 1 */
-            data = Memory[address,4];
-        if (Rd == 15){
-            PC = data & 0xFFFFFFFE
+    }
+    if ConditionPassed(p,ins){
+        //CP15 not implemented yet
+        /*if (CP15_reg1_Ubit == 0) data = Memory[address,4] Rotate_Right (8 * address[1:0]) else  CP15_reg_Ubit == 1 */
+        if (B==1){
+            uint8_t value = 0;
+            arm_read_byte(p, address, &value);
+        } else {
+            uint32_t value = 0;
+            arm_read_word(p,address,&value);
+        }
+        if (Rd ==  15){
+            arm_write_register(p,15,value & 0xFFFFFFFE);
             T Bit = data[0]
         }
         else{
-            Rd = data
+            arm_write_register(p,rd,value);
+        }
+        if ( ConditionPassed(p,ins) && ( W==1 || P==0 ) ){
+            arm_write_register(p,rn,address);// P==0 rn devrait remplacer address dans le bloc de calcul
         }
     }
+
     return 0;
 }
 
