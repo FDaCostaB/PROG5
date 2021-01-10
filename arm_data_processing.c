@@ -26,6 +26,7 @@ Contact: Guillaume.Huard@imag.fr
 #include "arm_branch_other.h"
 #include "util.h"
 #include "debug.h"
+
 void updateZN(arm_core p,uint32_t resultat){
 
 
@@ -83,10 +84,10 @@ uint32_t arm_add(uint32_t val1, uint32_t val2){
 
 uint32_t arm_bic(uint32_t val1, uint32_t val2){
     uint32_t  result;
-    result= val1 + & (~val2);
+    result= val1 & (~val2);
     return result;
 }
-
+/*
 void arm_mov(arm_core p,uint8_t rd,uint32_t val,int s){
 
     arm_write_register(p,rd, val);
@@ -118,7 +119,7 @@ void arm_mvn(arm_core p,uint8_t rd, uint32_t val,int s){
 
     arm_write_register(p,rd, (~val));
 
-    /*si le registre de dest est en mode user*/
+    //si le registre de dest est en mode user
     if(s){
         updateZN(p,resultat);
     }
@@ -292,69 +293,10 @@ void arm_rsc(arm_core p,uint8_t rn,uint8_t rd,uint32_t val_sh,  int s){
             arm_write_cpsr(p, (arm_read_cpsr(p) & (~(1<<28))));
     }
 }
-
-/* Decoding functions for different classes of instructions */
-/*
-int arm_data_processing_shift(arm_core p, uint32_t ins) {
-	uint8_t opcode = (uint8_t)((ins & 0xf00000) >> 20);
-	switch (opcode){
-		case 0:
-			apply(p,ins,arm_and);
-			break;
-		case 1:
-			arm_eor(p,ins);
-			break;
-		case 2:
-			arm_sub(p,ins);
-			break;
-		case 3:
-			arm_rsb(p,ins);
-			break;
-		case 4:
-			arm_add(p,ins);
-			break;
-		case 5:
-			arm_adc(p,ins);
-			break;
-		case 6:
-			arm_sbc(p,ins);
-			break;
-		case 7:
-			arm_rsc(p,ins);
-			break;
-		case 8:
-			arm_tst(p,ins);
-			break;
-		case 9:
-			arm_teq(p,ins);
-			break;
-		case 10:
-			arm_cmp(p,ins);
-			break;
-		case 11:
-			arm_cmn(p,ins);
-			break;
-		case 12:
-			arm_orr(p,ins);
-			break;
-		case 13:
-			arm_mov(p,ins);
-			break;
-		case 14:
-			arm_bic(p,ins);
-			break;
-		case 15:
-			arm_mvn(p,ins);
-			break;
-	}
-    return UNDEFINED_INSTRUCTION;
-}
-res = fonction(val1,val2); //a modifier pour les fonctions a un seul paramètres ex MOV/MNV
-arm_write_register(p,rd,res);
 */
+
 int decode_operand(arm_core p, uint32_t ins, uint32_t *val_1, uint32_t *val_2){ //RRX A IMPLEMENTER
 	uint32_t rn = (ins >> 16) & 0xf; //adresse registre source
-	uint32_t rd = (ins >> 12) & 0xf; //adresse registre destination
 	uint8_t bit_25 = (uint8_t) get_bit(ins,25);
 	uint8_t bit_7 = (uint8_t) get_bit(ins,7);
 	uint8_t bit_4 = (uint8_t) get_bit(ins,4);
@@ -398,4 +340,69 @@ int decode_operand(arm_core p, uint32_t ins, uint32_t *val_1, uint32_t *val_2){ 
 		}
 	}
 	return 0;
+}
+
+/* Decoding functions for different classes of instructions */
+
+int arm_data_processing_shift(arm_core p, uint32_t ins) {
+    uint32_t val1, val2, res;
+    uint32_t rd = (ins >> 12) & 0xf; //adresse registre destination
+    int isdataproc;
+    isdataproc = decode_operand(p,ins,&val1,&val2);
+    if (isdataproc == -1) return UNDEFINED_INSTRUCTION;
+	uint8_t opcode = (uint8_t)((ins & 0xf00000) >> 20);
+	switch (opcode){
+		case 0:
+			res = arm_and(val1,val2);
+			break;
+		case 1:
+			res = arm_eor(val1,val2);
+			break;
+		case 2:
+			res = arm_sub(val1,val2);
+			break;
+		case 3:
+			//res = arm_rsb(p,rn,rd,)
+			break;
+		case 4:
+			res = arm_add(val1,val2);
+			break;
+		case 5:
+			//res = arm_adc()
+			break;
+		case 6:
+			//res = arm_sbc()
+			break;
+		case 7:
+			//res = arm_rsc()
+			break;
+		case 8:
+			//arm_tst(p,val1,val2);
+			break;
+		case 9:
+			//arm_teq(p,val1,val2);
+			break;
+		case 10:
+			//arm_cmp()
+			break;
+		case 11:
+			//arm_cmn()
+			break;
+		case 12:
+			res = arm_orr(val1,val2);
+			break;
+		case 13:
+			//arm_mov()
+			break;
+		case 14:
+			res = arm_bic(val1,val2);
+			break;
+		case 15:
+			//arm_mvn()
+			break;
+        default:
+            return UNDEFINED_INSTRUCTION;
+	}
+    memory_write_word(p->mem,rd,res);
+    return 0;
 }
