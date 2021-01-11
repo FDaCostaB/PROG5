@@ -294,7 +294,11 @@ void arm_rsc(arm_core p,uint8_t rn,uint8_t rd,uint32_t val_sh,  int s){
     }
 }
 */
-
+uint32_t apply_rotation_imm(uint32_t ins){
+    uint8_t rotation_imm = (uint8_t)((ins & 0xf00) >> 8);
+	uint8_t immed_8 = (uint8_t) ins & 0xff;
+    return (uint32_t) ((immed_8 >> rotation_imm*2) | (immed_8 << (8-rotation_imm*2))); //rotation de rotation_imm x 2 bits 
+}
 int decode_operand(arm_core p, uint32_t ins, uint32_t *val_1, uint32_t *val_2){ //RRX A IMPLEMENTER
 	uint32_t rn = (ins >> 16) & 0xf; //adresse registre source
 	uint8_t bit_25 = (uint8_t) get_bit(ins,25);
@@ -304,12 +308,7 @@ int decode_operand(arm_core p, uint32_t ins, uint32_t *val_1, uint32_t *val_2){ 
 	*val_1 = arm_read_register(p,rn);
 
 	if (bit_25==1){ //32-bit immediate
-		uint8_t rotation_imm = (uint8_t)((ins & 0xf00) >> 8);
-		uint8_t immed_8;
-		
-		immed_8 = (uint8_t) ins & 0xff;
-		immed_8 = (immed_8 >> rotation_imm*2) | (immed_8 << (8-rotation_imm*2)); //rotation de rotation_imm x 2 bits 
-		*val_2 = (uint32_t)immed_8;
+		*val_2 = apply_rotation_imm(ins);
 	} else {
 		uint32_t rm = (ins & 0xf);
 		uint8_t shift = (uint8_t)((ins >> 5) & 2); //type du shift
@@ -406,3 +405,19 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
     arm_write_register(p,rd,res);
     return 0;
 }
+
+int arm_data_processing_immediate_msr(arm_core p, uint32_t ins){
+    uint8_t bits23_27 = (uint8_t) ((ins >> 23) & 0x1f);
+    uint32_t field_mask = (ins >> 16) & 0xf; //adresse registre source
+    uint32_t val_rotated = apply_rotation_imm(ins);
+    uint32_t sbo = (ins >> 12) & 0xf; //adresse registre destination
+    if (ConditionPassed(sbo,ins)){
+        if (get_bit(ins,25)==1){
+            
+        }
+    }
+    decode_operand(p,ins,&field_mask,&val_rotated);
+    return UNDEFINED_INSTRUCTION;
+}
+19-16 15-12 11-0
+Rn     Rd   shif
