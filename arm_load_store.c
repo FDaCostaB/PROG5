@@ -99,6 +99,7 @@ int arm_load_store(arm_core p, uint32_t ins){
         if (ConditionPassed(arm_read_cpsr(p),ins)){
             uint32_t value = 0;
             uint32_t data = 0;
+            if(P==0)address = rn_content;
             // A4.1.23 LDR +  A4.1.24 LDRB
             if (B==1){
                 data = arm_read_byte(p, address, (uint8_t *)&value);
