@@ -301,7 +301,7 @@ int decode_operand(arm_core p, uint32_t ins, uint32_t *val_1, uint32_t *val_2){ 
 	uint8_t bit_7 = (uint8_t) get_bit(ins,7);
 	uint8_t bit_4 = (uint8_t) get_bit(ins,4);
 	
-	arm_read_word(p,rn,val_1);
+	*val_1 = arm_read_register(p,rn);
 
 	if (bit_25==1){ //32-bit immediate
 		uint8_t rotation_imm = (uint8_t)((ins & 0xf00) >> 8);
@@ -314,13 +314,13 @@ int decode_operand(arm_core p, uint32_t ins, uint32_t *val_1, uint32_t *val_2){ 
 		uint32_t rm = (ins & 0xf);
 		uint8_t shift = (uint8_t)((ins >> 5) & 2); //type du shift
 		uint8_t val_shift;
-		arm_read_word(p,rm,val_2);
+		*val_2 = arm_read_register(p,rm);
 
 		if (bit_4==0){ //shift par immediate
 			 val_shift = (ins >> 7) & 31; //31 = 11111 
 		} else if (bit_7==0){ //shift par registre
 			uint32_t rs = (ins >> 8) & 0xf;
-			arm_read_byte(p,rs,&val_shift);
+			val_shift = (uint8_t) arm_read_register(p,rs);
 		} else {
 			return -1; //PAS UNE INSTRUCTION DE DATA PROCESSING
 		}
@@ -403,6 +403,6 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
         default:
             return UNDEFINED_INSTRUCTION;
 	}
-    arm_write_word(p,rd,res);
+    arm_write_register(p,rd,res);
     return 0;
 }
