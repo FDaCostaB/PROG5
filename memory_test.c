@@ -86,7 +86,7 @@ int main() {
 
     printf("Writing 4 bytes at address 0, then reading the word and half, "
            "the result should depend on simulated memory endianess :\n");
-    position = (uint8_t *) & word_value;
+    position = (uint8_t *) &word_value;
     for (i=0; i<4; i++) {
         memory_write_byte(m[0], i, *(position+i));
         memory_write_byte(m[1], i, *(position+i));

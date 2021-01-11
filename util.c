@@ -36,4 +36,60 @@ int is_big_endian() {
     return ((* (uint8_t *) &one) == 0);
 }
 
+cond arm_get_cond(uint32_t ins){
+    uint8_t val = (uint8_t)((ins & 0xf0000000) >> 28);
+    return (cond) val;
+}
 
+int ConditionPassed(uint32_t cpsr,uint32_t ins){
+    switch (arm_get_cond(ins)) {
+        case EQ:
+            return get_bit(cpsr,Z);
+            break;
+        case NE:
+            return !get_bit(cpsr,Z);
+            break;
+        case CS_HS:
+            return get_bit(cpsr,C);
+            break;
+        case CC_LO:
+            return !get_bit(cpsr,C);
+            break;
+        case MI:
+            return get_bit(cpsr,N);
+            break;
+        case PL:
+            return !get_bit(cpsr,N);
+            break;
+        case VS:
+            return get_bit(cpsr,V);
+            break;
+        case VC:
+            return !get_bit(cpsr,V);
+            break;
+        case HI:
+            return get_bit(cpsr,C) && !get_bit(cpsr,Z);
+            break;
+        case LS:
+            return !get_bit(cpsr,C) || get_bit(cpsr,Z);
+            break;
+        case GE:
+            return get_bit(cpsr,N) == get_bit(cpsr,V);
+            break;
+        case LT:
+            return get_bit(cpsr,N) != get_bit(cpsr,V);
+            break;
+        case GT:
+            return !get_bit(cpsr,Z) && (get_bit(cpsr,N) == get_bit(cpsr,V));
+            break;
+        case LE:
+            return get_bit(cpsr,Z) || (get_bit(cpsr,N) != get_bit(cpsr,V));
+            break;
+        case AL:
+            return 1;
+            break;
+        default:
+            return 0;
+            break;
+    }
+}

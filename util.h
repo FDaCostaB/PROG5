@@ -23,6 +23,8 @@ Contact: Guillaume.Huard@imag.fr
 #ifndef __UTIL_H__
 #define __UTIL_H__
 #include <stdint.h>
+#include "arm_core.h"
+#include "arm_constants.h"
 
 #define min(x,y) ((x)<(y)?(x):(y))
 #define max(x,y) ((x)>(y)?(x):(y))
@@ -40,8 +42,31 @@ Contact: Guillaume.Huard@imag.fr
 #define reverse_4(x) ((((x)&0xFF)<<24)|((((x)>>8)&0xFF)<<16)|\
                       ((((x)>>16)&0xFF)<<8)|(((x)>>24)&0xFF))
 
+typedef enum
+{
+    EQ,
+    NE,
+    CS_HS,
+    CC_LO,
+    MI,
+    PL,
+    VS,
+    VC,
+    HI,
+    LS,
+    GE,
+    LT,
+    GT,
+    LE,
+    AL
+} cond;
+
 uint32_t asr(uint32_t value, uint8_t shift);
 uint32_t ror(uint32_t value, uint8_t rotation);
 
+cond arm_get_cond(uint32_t ins);
+int ConditionPassed(uint32_t cpsr,uint32_t ins);
+
 int is_big_endian();
+
 #endif

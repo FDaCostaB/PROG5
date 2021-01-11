@@ -30,45 +30,39 @@ Contact: Guillaume.Huard@imag.fr
 
 static int arm_execute_instruction(arm_core p) {
     uint32_t ins;
-    arm_fetch(p,&ins);
-    printf("%08x \n",ins);
-    uint8_t champ = (uint8_t)get_bits(ins, 27, 25);
-    if(arm_fetch(p, &ins)){
+    if(arm_fetch(p, &ins)) {
         return 1;
     }
-    else{
-        switch (champ) {
-            case 0:
-            case 1:
-                /* Move immediate to status register */
-                /* Undefined instruction  */
-                /* Data processing immediate */
-                arm_data_processing_shift(p, ins);
-                break;
-            case 2:
-            case 3:
-                /* Media instructions */
-                /* Load/store register offset */
-                arm_load_store(p, ins);
-                break;
-            case 4:
-                arm_load_store_multiple(p, ins);
-                break;
-            case 5:
-                arm_branch(p, ins);
-                break;
-            case 6:
-                arm_coprocessor_load_store(p, ins);
-                break;
-            case 7:
-                arm_coprocessor_others_swi(p, ins);
-                break;
-            default:
-                return 1;
-                break;
-        }
+    printf("%08x \n",ins);
+    uint8_t champ = (uint8_t)get_bits(ins, 27, 25);
+    printf("%d \n",champ);
+    switch (champ) {
+        case 0:
+            arm_data_processing_shift(p, ins);
+            break;
+        case 1:
+            arm_data_processing_shift(p, ins);
+            break;
+        case 2:
+        case 3:
+            arm_load_store(p, ins);
+            break;
+        case 4:
+            arm_load_store_multiple(p, ins);
+            break;
+        case 5:
+            arm_branch(p, ins);
+            break;
+        case 6:
+            arm_coprocessor_load_store(p, ins);
+            break;
+        case 7:
+            arm_coprocessor_others_swi(p, ins);
+            break;
+        default:
+            return 1;
+            break;
     }
-
     return 0;
 }
 

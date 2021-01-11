@@ -55,7 +55,7 @@ int memory_read_byte(memory mem, uint32_t address, uint8_t *value) {
 
 int memory_read_half(memory mem, uint32_t address, uint16_t *value) {
     if(address>=memory_get_size(mem)) return -1;
-    if(address%2!=0) return -1;
+    //if(address%2!=0) return -1;
     *value = *((uint16_t *) (mem->data+address));
     if(is_big_endian() != mem->is_big_endian )
         *value = reverse_2(*value);
@@ -64,7 +64,7 @@ int memory_read_half(memory mem, uint32_t address, uint16_t *value) {
 
 int memory_read_word(memory mem, uint32_t address, uint32_t *value) {
     if(address>=memory_get_size(mem)) return -1;
-    if(address%4!=0) return -1;
+    //if(address%4!=0) return -1;
     *value = * ((uint32_t *) (mem->data+address));
     if(is_big_endian() != mem->is_big_endian )
         *value = reverse_4(*value);
@@ -79,7 +79,7 @@ int memory_write_byte(memory mem, uint32_t address, uint8_t value) {
 
 int memory_write_half(memory mem, uint32_t address, uint16_t value) {
     if(address>=memory_get_size(mem)) return -1;
-    if(address%2!=0) return -1;
+    //if(address%2!=0) return -1;
     if(is_big_endian() != mem->is_big_endian )
         value = reverse_2(value);
     for(int i = 0; i<2;i++)
@@ -89,10 +89,10 @@ int memory_write_half(memory mem, uint32_t address, uint16_t value) {
 
 int memory_write_word(memory mem, uint32_t address, uint32_t value) {
     if(address>=memory_get_size(mem)) return -1;
-    if(address%4!=0) return -1;
+    //if(address%4!=0) return -1;
     if(is_big_endian() != mem->is_big_endian )
         value = reverse_4(value);
     for(int i = 0; i<4;i++)
-            mem->data[address+i] = * ( ((uint8_t *) &value) +i);
+        mem->data[address+i] = * ( ((uint8_t *) &value) +i);
     return 0;
 }

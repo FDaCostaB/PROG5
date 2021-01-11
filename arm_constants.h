@@ -47,6 +47,7 @@ Contact: Guillaume.Huard@imag.fr
 #define Z 30
 #define C 29
 #define V 28
+#define T 5
 
 /* shift operations */
 #define LSL 0
@@ -61,24 +62,6 @@ Contact: Guillaume.Huard@imag.fr
 #define PrivMask    0x0000000F
 #define StateMask   0x00000020
 
-typedef enum
-{
-    EQ,
-    NE,
-    CS_HS,
-    CC_LO,
-    MI,
-    PL,
-    VS,
-    VC,
-    HI,
-    LS,
-    GE,
-    LT,
-    GT,
-    LE,
-    AL
-} cond;
 
 char *arm_get_exception_name(unsigned char exception);
 char *arm_get_mode_name(uint8_t mode);

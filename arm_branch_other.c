@@ -26,67 +26,8 @@ Contact: Guillaume.Huard@imag.fr
 #include <debug.h>
 #include <stdlib.h>
 
-cond arm_get_cond(uint32_t ins){
-    uint8_t val = (uint8_t)((ins & 0xf0000000) >> 28);
-    return (cond) val;
-}
-
-int arm_test_cond(arm_core p,uint32_t ins){
-    uint32_t cpsr = arm_read_cpsr(p);
-    switch (arm_get_cond(ins)) {
-        case EQ:
-            return get_bit(cpsr,Z);
-            break;
-        case NE:
-            return !get_bit(cpsr,Z);
-            break;
-        case CS_HS:
-            return get_bit(cpsr,C);
-            break;
-        case CC_LO:
-            return !get_bit(cpsr,C);
-            break;
-        case MI:
-            return get_bit(cpsr,N);
-            break;
-        case PL:
-            return !get_bit(cpsr,N);
-            break;
-        case VS:
-            return get_bit(cpsr,V);
-            break;
-        case VC:
-            return !get_bit(cpsr,V);
-            break;
-        case HI:
-            return get_bit(cpsr,C) && !get_bit(cpsr,Z);
-            break;
-        case LS:
-            return !get_bit(cpsr,C) || get_bit(cpsr,Z);
-            break;
-        case GE:
-            return get_bit(cpsr,N) == get_bit(cpsr,V);
-            break;
-        case LT:
-            return get_bit(cpsr,N) != get_bit(cpsr,V);
-            break;
-        case GT:
-            return !get_bit(cpsr,Z) && (get_bit(cpsr,N) == get_bit(cpsr,V));
-            break;
-        case LE:
-            return get_bit(cpsr,Z) || (get_bit(cpsr,N) != get_bit(cpsr,V));
-            break;
-        case AL:
-            return 1;
-            break;
-        default:
-            return 0;
-            break;
-    }
-}
-
 int arm_branch(arm_core p, uint32_t ins) {
-    if(arm_test_cond(p,ins)){
+    if(ConditionPassed(arm_read_cpsr(p),ins)){
         if( (ins>>24) & 1 ) arm_write_register(p, 14, arm_read_register(p,15));
         uint32_t val = ins | (get_bit(ins, 24) ? ~0<<25: 0);
         val = val << 2;
