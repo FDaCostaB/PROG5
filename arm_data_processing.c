@@ -78,7 +78,7 @@ uint32_t arm_orr(uint32_t val1, uint32_t val2){
 }
 uint32_t arm_add(uint32_t val1, uint32_t val2){
     uint32_t  result;
-    result= val1 + val2;
+    result = val1 + val2;
     return result;
 }
 
@@ -350,7 +350,7 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
     int isdataproc;
     isdataproc = decode_operand(p,ins,&val1,&val2);
     if (isdataproc == -1) return UNDEFINED_INSTRUCTION;
-	uint8_t opcode = (uint8_t)((ins & 0xf00000) >> 20);
+	uint8_t opcode = (uint8_t)((ins & 0xf00000) >> 21);
 	switch (opcode){
 		case 0:
 			res = arm_and(val1,val2);
@@ -365,7 +365,7 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 			//res = arm_rsb(p,rn,rd,)
 			break;
 		case 4:
-			res = arm_add(val1,val2);
+            res = arm_add(val1,val2);
 			break;
 		case 5:
 			//res = arm_adc()
