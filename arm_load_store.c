@@ -26,9 +26,6 @@ Contact: Guillaume.Huard@imag.fr
 #include "util.h"
 #include "debug.h"
 
-//W?arm_write_usr_register(p, reg):arm_write_register(p, reg);
-//W?arm_read_usr_register(p, reg):arm_read_register(p, reg);
-
 int arm_load_store(arm_core p, uint32_t ins){
     // A5.2.1 Encoding ( Addressing Mode 2 - Load and Store Word or Unsigned Byte )
     uint32_t rn = get_bits(ins,19,16);
@@ -46,8 +43,7 @@ int arm_load_store(arm_core p, uint32_t ins){
     if(operateur == 1){
         if (I==0){
             if(P==1 || ( P==0 && ConditionPassed(arm_read_cpsr(p),ins) ) ){
-                uint16_t offset_12 = get_bits(ins,11,0);
-                index = offset_12;
+                index = get_bits(ins,11,0); //offset_12
             }
         } else {
             // A5.2.4 Load and Store Word or Unsigned Byte - Scaled register offset
@@ -57,13 +53,13 @@ int arm_load_store(arm_core p, uint32_t ins){
                 uint16_t rm = get_bits(ins,3,0);
                 switch(shift) {
                     case 0b00 : /* LSL */
-                        index = rm << shift_imm;
+                        index = arm_read_register(p, rm) << shift_imm;
                         break;
                     case 0b01 :/* LSR */
                         if (shift_imm == 0) {
-                            index = 0;
+                            index = 00 ; //arm_read_register(p, rm);
                         } else { /* LSR #32 */
-                            index = rm >> shift_imm;
+                            index = arm_read_register(p, rm) >> shift_imm;
                         }
                     case 0b10 :/* ASR */
                         if (shift_imm == 0) { /* ASR #32 */
@@ -72,13 +68,13 @@ int arm_load_store(arm_core p, uint32_t ins){
                             else
                                 index = 0;
                         } else {
-                            index = asr(rm,shift_imm);
+                            index = asr(arm_read_register(p, rm),shift_imm);
                         }
                     case 0b11 : /* ROR or RRX */
                         if (shift_imm == 0) {/* RRX */
-                            index = (get_bit(arm_read_cpsr(p),C) << 31) || (rm >> 1);
+                            index = (get_bit(arm_read_cpsr(p),C) << 31) || (arm_read_register(p, rm) >> 1);
                         } else {
-                            index = ror(rm,shift_imm);
+                            index = ror(arm_read_register(p, rm),shift_imm);
                         }/* ROR */
                 }
             }
@@ -87,10 +83,10 @@ int arm_load_store(arm_core p, uint32_t ins){
         // P == 0 Indicates the use of post-indexed addressing.
         // P == 1 Indicates the use of offset addressing or pre-indexed addressing.
         if(U == 1) {
-            if(P==1) address=arm_read_register(p,rn)  + index ; else rn_content=arm_read_register(p,rn)  + index;
+            if(P==1) address = arm_read_register(p,rn) + index  ;
         }
         else{ /* U == 0 */
-            if(P==1) address=arm_read_register(p,rn)  - index ; else rn_content=arm_read_register(p,rn)  - index;
+            if(P==1) address = arm_read_register(p,rn) - index  ;
         }
         if(P==0 && ConditionPassed(arm_read_cpsr(p),ins)) W?arm_write_usr_register(p, rn, rn_content):arm_write_register(p, rn,rn_content);
         if(P==1 && ConditionPassed(arm_read_cpsr(p),ins) && W==1 ) arm_write_usr_register(p, rn, address);
@@ -111,7 +107,12 @@ int arm_load_store(arm_core p, uint32_t ins){
                 arm_write_cpsr(p,get_bit(data,0)?set_bit(arm_read_cpsr(p),T):clr_bit(arm_read_cpsr(p),T));
             }
             else{
-                arm_write_register(p,rd,value);
+                if(P==1) {
+                    arm_write_register(p,rd,value);
+                }
+                else {
+                    if(U==1) arm_write_register(p,rd,value+index); else arm_write_register(p,rd,value-index);
+                }
             }
         }
     } else { // On execute le STR

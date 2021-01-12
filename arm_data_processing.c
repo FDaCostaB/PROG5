@@ -362,7 +362,7 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 			res = arm_sub(val1,val2);
 			break;
 		case 3:
-			//res = arm_rsb(p,rn,rd,)
+			//res = arm_rsb(p,rn,rd)
 			break;
 		case 4:
             res = arm_add(val1,val2);
