@@ -84,35 +84,34 @@ int arm_load_store(arm_core p, uint32_t ins){
         // P == 1 Indicates the use of offset addressing or pre-indexed addressing.
         if(U == 1) {
             if(P==1) address = arm_read_register(p,rn) + index  ;
+            else address = rn_content;
         }
         else{ /* U == 0 */
             if(P==1) address = arm_read_register(p,rn) - index  ;
+            else address = rn_content;
         }
-        if(P==0 && ConditionPassed(arm_read_cpsr(p),ins)) W?arm_write_usr_register(p, rn, rn_content):arm_write_register(p, rn,rn_content);
+        if(P==0 && ConditionPassed(arm_read_cpsr(p),ins)) {
+            if(W==1)arm_write_usr_register(p, rn, U?rn_content+index:rn_content-index);
+            else arm_write_register(p, rn,U?rn_content+index:rn_content-index);
+        }
         if(P==1 && ConditionPassed(arm_read_cpsr(p),ins) && W==1 ) arm_write_usr_register(p, rn, address);
 
         // A4.1.23 LDR
         if (ConditionPassed(arm_read_cpsr(p),ins)){
             uint32_t value = 0;
-            uint32_t data = 0;
             if(P==0)address = rn_content;
             // A4.1.23 LDR +  A4.1.24 LDRB
             if (B==1){
-                data = arm_read_byte(p, address, (uint8_t *)&value);
+                arm_read_byte(p, address, (uint8_t *)&value);
             } else {
-                data = arm_read_word(p,address,&value);
+                arm_read_word(p,address,&value);
             }
             if (rd ==  15){
                 arm_write_register(p,15,value & 0xFFFFFFFE);
-                arm_write_cpsr(p,get_bit(data,0)?set_bit(arm_read_cpsr(p),T):clr_bit(arm_read_cpsr(p),T));
+                arm_write_cpsr(p,get_bit(value,0)?set_bit(arm_read_cpsr(p),T):clr_bit(arm_read_cpsr(p),T));
             }
             else{
-                if(P==1) {
-                    arm_write_register(p,rd,value);
-                }
-                else {
-                    if(U==1) arm_write_register(p,rd,value+index); else arm_write_register(p,rd,value-index);
-                }
+                arm_write_register(p,rd,value);
             }
         }
     } else { // On execute le STR
@@ -122,10 +121,106 @@ int arm_load_store(arm_core p, uint32_t ins){
 }
 
 int arm_load_store_multiple(arm_core p, uint32_t ins) {
-    return UNDEFINED_INSTRUCTION;
+    uint32_t rn = get_bits(ins,19,16);
+    uint32_t P = get_bit(ins, 24);
+    uint32_t U = get_bit(ins, 23);
+    uint32_t W = get_bit(ins, 21);
+    uint32_t operateur = get_bit(ins, 20);
+    uint8_t nb_reg = 0;
+    uint32_t start_address = 0,end_address = 0, address = 0, value =0;
+    for(int i = 0;i<=14;i++){
+        nb_reg+=get_bit(ins, i);
+    }
+    //A4.1.20 LDM (1)
+    if(operateur == 1){
+        if(P==0){
+            if(U==1){
+                start_address = arm_read_register(p,rn);
+                end_address = (arm_read_register(p,rn) + nb_reg * 4) - 4;
+                if (ConditionPassed(arm_read_cpsr(p),ins) && W == 1)
+                        arm_write_register(p,rn,arm_read_register(p,rn) + nb_reg * 4);
+            } else { // U == 0
+                start_address = arm_read_register(p,rn) - (nb_reg * 4) + 4;
+                end_address = arm_read_register(p,rn);
+                if (ConditionPassed(arm_read_cpsr(p),ins) && W == 1)
+                        arm_write_register(p,rn,arm_read_register(p,rn) - (nb_reg * 4) );
+            }
+        } else { // P == 1
+            if(U==1){
+                start_address = arm_read_register(p,rn) + 4;
+                end_address = arm_read_register(p,rn) + (nb_reg * 4);
+                if (ConditionPassed(arm_read_cpsr(p),ins) && W == 1)
+                        arm_write_register(p,rn,arm_read_register(p,rn) + (nb_reg * 4) );
+            } else { // U == 0
+                start_address = arm_read_register(p,rn) - (nb_reg * 4);
+                end_address = arm_read_register(p,rn) - 4;
+                if (ConditionPassed(arm_read_cpsr(p),ins) && W == 1)
+                        arm_write_register(p,rn,arm_read_register(p,rn) - (nb_reg * 4));
+            }
+        }
+
+        if(ConditionPassed(arm_read_cpsr(p),ins)){
+            address = start_address;
+            for(int i = 0;i<=14;i++){
+                if (get_bit(ins, i) == 1){
+                    arm_read_word(p,address,&value);
+                    arm_write_register(p,i,value);
+                    address = U?address + 4:address - 4;
+                }
+            }
+            if (get_bit(ins, 15) == 1){
+                arm_read_word(p,address,&value);
+                arm_write_register(p,15,value && 0xFFFFFFFE);
+                arm_write_cpsr(p,get_bit(value,0)?set_bit(arm_read_cpsr(p),T):clr_bit(arm_read_cpsr(p),T));
+            }
+            address = address + 4;
+        }
+    } else {//A4.1.?? STM (1)
+
+    }
+    if(end_address != address - 4) return 1;
+    return 0;
+}
+int arm_load_store_half(arm_core p, uint32_t ins) {
+    uint32_t rn = get_bits(ins,19,16);
+    uint32_t rd = get_bits(ins,15,12);
+    uint32_t rm_immedL = get_bits(ins,3,0);
+    uint32_t immedH = get_bits(ins,11,8);
+    uint32_t P = get_bit(ins, 24);
+    uint32_t U = get_bit(ins, 23);
+    uint32_t I = get_bit(ins, 22);
+    uint32_t W = get_bit(ins, 21);
+    uint32_t operateur = get_bit(ins, 20);
+    uint8_t offset_8 = 0;
+    uint32_t address = 0, value = 0;
+
+    if(get_bits(ins,7,4) != 0b1011) return 1;
+    //A4.1.29 LDRH
+    if(operateur == 1){
+        if(I==1) offset_8 = (immedH << 4) | rm_immedL ;
+        else offset_8 = arm_read_register(p,rm_immedL);
+
+        if(P==1) address = U? arm_read_register(p,rn) + offset_8 : arm_read_register(p,rn) - offset_8 ;
+        else address = arm_read_register(p,rn);
+
+        if(W==1&&P==0) printf("UNPREDICTABLE");
+        if(W==1&& ConditionPassed(arm_read_cpsr(p),ins)) arm_write_register(p,rn,address);
+
+        if (ConditionPassed(arm_read_cpsr(p),ins) ){
+            arm_read_half(p,address,(uint16_t *)&value);
+            if(P==0){
+                 arm_write_register(p,rd,address);
+                 arm_write_register(p,rn,rn+rm_immedL);
+            } else {
+                arm_write_register(p,rd,value);
+            }
+        }
+    } else { //A4.1.?? STRH
+
+    }
+    return 0;
 }
 
 int arm_coprocessor_load_store(arm_core p, uint32_t ins) {
-    /* Not implemented */
     return UNDEFINED_INSTRUCTION;
 }

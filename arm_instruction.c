@@ -38,7 +38,11 @@ static int arm_execute_instruction(arm_core p) {
     printf("%d \n",champ);
     switch (champ) {
         case 0:
-            arm_data_processing_shift(p, ins);
+            if(get_bits(ins,7,4)==0b1011 && get_bit(ins,20)==1){
+                int arm_load_store_half(arm_core p, uint32_t ins);
+            }else{
+                arm_data_processing_shift(p, ins);
+            }
             break;
         case 1:
             arm_data_processing_shift(p, ins);
