@@ -224,7 +224,7 @@ void arm_rsb(arm_core p, uint8_t rd, uint32_t val_1,uint32_t val_2,  int s, int 
     if(s){
 
         //mis a jour Z et N
-        maj_ZN(p,result);
+        updateZN(p,result);
 
         //indicateur C
         if( (0xffffffff - val_2) < ~val_1 + 0x1 && !c){
@@ -254,7 +254,7 @@ void arm_rsc(arm_core p,uint8_t rd,uint32_t val_1,uint32_t val_2,  int s, int c)
     arm_write_register(p,rd, result);
 
     if(s){
-        maj_ZN(p,result);
+        updateZN(p,result);
 
         //indicateur C
         if( (0xffffffff - val_2 - c) < ~val_1 + 0x2 && !c){
@@ -275,8 +275,10 @@ void arm_rsc(arm_core p,uint8_t rd,uint32_t val_1,uint32_t val_2,  int s, int c)
 
 uint32_t apply_rotation_imm(uint32_t ins){
     uint8_t rotation_imm = (uint8_t)((ins & 0xf00) >> 8);
-	uint8_t immed_8 = (uint8_t) ins & 0xff;
-    return (uint32_t) ((immed_8 >> rotation_imm*2) | (immed_8 << (8-rotation_imm*2))); //rotation de rotation_imm x 2 bits 
+	uint8_t immed_8 = (uint8_t) (ins & 0xff);
+    if (rotation_imm!=0)
+        return (uint32_t) ((immed_8 >> rotation_imm*2) | (immed_8 << (8-rotation_imm*2))); //rotation de rotation_imm x 2 bits
+    return immed_8;
 }
 int decode_operand(arm_core p, uint32_t ins, uint32_t *val_1, uint32_t *val_2){ //RRX A IMPLEMENTER
 	uint32_t rn = (ins >> 16) & 0xf; //adresse registre source
@@ -328,10 +330,9 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
     uint8_t bit_c = get_bit(arm_read_cpsr(p),29);
     uint8_t bit_v = get_bit(arm_read_cpsr(p),28);
     uint8_t rd = (uint8_t) ((ins >> 12) & 0xf); //adresse registre destination
-    int isdataproc;
-    isdataproc = decode_operand(p,ins,&val_1,&val_2);
+    int isdataproc = decode_operand(p,ins,&val_1,&val_2);
     if (isdataproc == -1) return UNDEFINED_INSTRUCTION;
-	uint8_t opcode = (uint8_t)((ins & 0xf00000) >> 21);
+	uint8_t opcode = (uint8_t)((ins >> 21) & 0xf);
 	switch (opcode){
 		case 0:
 			res = arm_and(val_1,val_2);
@@ -344,9 +345,9 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 			break;
 		case 3:
 			arm_rsb(p,rd,val_1,val_2,bit_s,bit_c,bit_v);
-			break;
+			return 0;
 		case 4:
-      //res = arm_add(val_1,val_2);
+            res = arm_add(val_1,val_2);
 			break;
 		case 5:
 			res = arm_adc(p,val_1,val_2,bit_c);
@@ -356,31 +357,31 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 			break;
 		case 7:
 			arm_rsc(p,val_1,rd,val_2,bit_s,bit_c);
-			break;
+			return 0;
 		case 8:
 			arm_tst(p,val_1,val_2);
-			break;
+			return 0;
 		case 9:
 			arm_teq(p,val_1,val_2);
-			break;
+			return 0;
 		case 10:
 			arm_cmp(p,val_1,val_2,bit_c,bit_v);
-			break;
+			return 0;
 		case 11:
 			arm_cmn(p,val_1,val_2,bit_c);
-			break;
+			return 0;;
 		case 12:
 			res = arm_orr(val_1,val_2);
 			break;
 		case 13:
 			arm_mov(p,rd,val_2,bit_s);
-			break;
+			return 0;
 		case 14:
 			res = arm_bic(val_1,val_2);
 			break;
 		case 15:
 			arm_mvn(p,rd,val_2,bit_s);
-			break;
+            return 0;
         default:
             return UNDEFINED_INSTRUCTION;
 	}
