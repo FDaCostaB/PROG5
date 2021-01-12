@@ -26,11 +26,13 @@ Contact: Guillaume.Huard@imag.fr
 #include "util.h"
 #include "debug.h"
 
+//W?arm_write_usr_register(p, reg):arm_write_register(p, reg);
+//W?arm_read_usr_register(p, reg):arm_read_register(p, reg);
 
 int arm_load_store(arm_core p, uint32_t ins){
-    uint32_t rn = get_bits(ins,19,16); //adresse??
+    // A5.2.1 Encoding ( Addressing Mode 2 - Load and Store Word or Unsigned Byte )
+    uint32_t rn = get_bits(ins,19,16);
     uint32_t address = 0;
-
     uint32_t rd = get_bits(ins,15,12);
     uint32_t operateur = get_bit(ins, 20); //OP = LDR ou STR (Bit L)
     uint32_t I = get_bit(ins, 25);
@@ -38,19 +40,17 @@ int arm_load_store(arm_core p, uint32_t ins){
     uint32_t U = get_bit(ins, 23);
     uint32_t B = get_bit(ins, 22);
     uint32_t W = get_bit(ins, 21);
+    uint32_t rn_content = arm_read_register(p, rn);
+    uint32_t index = 0;
     // On execute le LDR
     if(operateur == 1){
         if (I==0){
             if(P==1 || ( P==0 && ConditionPassed(arm_read_cpsr(p),ins) ) ){
                 uint16_t offset_12 = get_bits(ins,11,0);
-                if(U==1){
-                    address = arm_read_register(p,rn) + offset_12;
-                } else {
-                    address = arm_read_register(p,rn)  - offset_12;
-                }
+                index = offset_12;
             }
         } else {
-            uint32_t index = 0;
+            // A5.2.4 Load and Store Word or Unsigned Byte - Scaled register offset
             if(P==1 || ( P==0 && ConditionPassed(arm_read_cpsr(p),ins) )){
                 uint16_t shift = get_bits(ins,6,5);
                 uint16_t shift_imm = get_bits(ins,11,7);
@@ -81,19 +81,26 @@ int arm_load_store(arm_core p, uint32_t ins){
                             index = ror(rm,shift_imm);
                         }/* ROR */
                 }
-                if(U == 1) {
-                    address = arm_read_register(p,rn)  + index;
-                }
-                else{ /* U == 0 */
-                    address = arm_read_register(p,rn)  - index;
-                }
             }
         }
+        //A5.2.2 Load and Store Word or Unsigned Byte - Immediate offset
+        // P == 0 Indicates the use of post-indexed addressing.
+        // P == 1 Indicates the use of offset addressing or pre-indexed addressing.
+        if(U == 1) {
+            if(P==1) address=arm_read_register(p,rn)  + index ; else rn_content=arm_read_register(p,rn)  + index;
+        }
+        else{ /* U == 0 */
+            if(P==1) address=arm_read_register(p,rn)  - index ; else rn_content=arm_read_register(p,rn)  - index;
+        }
+        if(P==0 && ConditionPassed(arm_read_cpsr(p),ins)) W?arm_write_usr_register(p, rn, rn_content):arm_write_register(p, rn,rn_content);
+        if(P==1 && ConditionPassed(arm_read_cpsr(p),ins) && W==1 ) arm_write_usr_register(p, rn, address);
+
+        // A4.1.23 LDR
         if (ConditionPassed(arm_read_cpsr(p),ins)){
-            //CP15 not implemented yet
-            /*if (CP15_reg1_Ubit == 0) data = Memory[address,4] Rotate_Right (8 * address[1:0]) else  CP15_reg_Ubit == 1 */
             uint32_t value = 0;
             uint32_t data = 0;
+            if(P==0)address = rn_content;
+            // A4.1.23 LDR +  A4.1.24 LDRB
             if (B==1){
                 data = arm_read_byte(p, address, (uint8_t *)&value);
             } else {
@@ -106,10 +113,9 @@ int arm_load_store(arm_core p, uint32_t ins){
             else{
                 arm_write_register(p,rd,value);
             }
-            if ( ConditionPassed(arm_read_cpsr(p),ins) && ( W==1 || P==0 ) ){
-                arm_write_register(p,rn,address); // P==0 rn devrait remplacer address dans le bloc de calcul
-            }
         }
+    } else { // On execute le STR
+
     }
     return 0;
 }
