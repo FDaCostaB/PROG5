@@ -172,9 +172,6 @@ void arm_cmp(arm_core p,uint32_t val1,uint32_t val2, int c, int v){
     else
         arm_write_cpsr(p, (arm_read_cpsr(p) & (~(1<<28))));
 
-    v = read_V(p);
-    printf("V after CMP processing = %d\n",v);
-
     // Indicateur C
     if( (0xffffffff - val1) < ~val2 + 0x1 && !c){
         arm_write_cpsr(p, set_bit(arm_read_cpsr(p), 29));
@@ -192,7 +189,7 @@ void arm_cmn(arm_core p,uint32_t  val1, uint32_t val2, int c){
 
     uint32_t result;
     result = val1 + val2;
-    maj_ZN(p,result);
+    updateZN(p,result);
 
     //indicateur V
     if(get_bit(val1,31) == get_bit(val2,31) && get_bit(val1,31) != get_bit(result,31)){
@@ -349,7 +346,7 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 			arm_rsb(p,rd,val_1,val_2,bit_s,bit_c,bit_v);
 			break;
 		case 4:
-            res = arm_add(val_1,val_2);
+            //res = arm_add(val_1,val_2);
 			break;
 		case 5:
 			res = arm_adc(p,val_1,val_2,bit_c);
