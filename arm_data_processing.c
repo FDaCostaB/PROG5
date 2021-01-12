@@ -399,7 +399,6 @@ int arm_data_processing_immediate_msr(arm_core p, uint32_t ins){
             
         }
     }
-    decode_operand(p,ins,&field_mask,&val_rotated);
     return UNDEFINED_INSTRUCTION;
 }
 19-16 15-12 11-0
