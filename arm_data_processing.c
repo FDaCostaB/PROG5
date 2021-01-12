@@ -346,7 +346,7 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 			arm_rsb(p,rd,val_1,val_2,bit_s,bit_c,bit_v);
 			break;
 		case 4:
-            //res = arm_add(val_1,val_2);
+      //res = arm_add(val_1,val_2);
 			break;
 		case 5:
 			res = arm_adc(p,val_1,val_2,bit_c);
