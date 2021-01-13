@@ -23,6 +23,7 @@ Contact: Guillaume.Huard@imag.fr
 #ifndef __ARM_DATA_PROCESSING_H__
 #define __ARM_DATA_PROCESSING_H__
 #include <stdint.h>
+#include <string.h>
 #include "arm_core.h"
 
 
@@ -30,11 +31,11 @@ void updateZN(arm_core p,uint32_t resultat);
 uint32_t arm_and (arm_core p,uint32_t val1, uint32_t val2 ,uint8_t s);
 uint32_t arm_eor (arm_core p,uint32_t val1, uint32_t val2,uint8_t s);
 uint32_t arm_sub (arm_core p,uint32_t val1, uint32_t val2,uint8_t s,uint8_t c,uint8_t v);
-uint32_t arm_orr(uint32_t val1, uint32_t val2,uint8_t s);
-uint32_t arm_add(arm_core p,uint32_t val1, uint32_t val2,uint8_t s,uint8_t c,uint8_t v,uint8_t s);
+uint32_t arm_orr(arm_core p,uint32_t val1, uint32_t val2,uint8_t s);
+uint32_t arm_add(arm_core p,uint32_t val1, uint32_t val2,uint8_t s,uint8_t c,uint8_t v);
 uint32_t arm_bic(arm_core p,uint32_t val1, uint32_t val2,uint8_t s);
 int arm_mov(arm_core p,uint8_t rd,uint32_t val,uint8_t s);
-uint32_t arm_sbc(arm_core p,uint32_t val1, uint32_t val2, uint8_t c,uint8_t s);
+uint32_t arm_sbc(arm_core p,uint32_t val1, uint32_t val2, uint8_t c,uint8_t s, uint8_t v);
 uint32_t arm_adc(arm_core p,uint32_t val1,uint32_t val2, uint8_t c,uint8_t s);
 int arm_mvn(arm_core p,uint8_t rd, uint32_t val,uint8_t s);
 void arm_teq(arm_core p,uint32_t val1,uint32_t val2);

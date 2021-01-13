@@ -51,7 +51,7 @@ uint32_t arm_and (arm_core p,uint32_t val1, uint32_t val2 ,uint8_t s){
     uint32_t  result;
     result= val1 & val2;
     if(s){
-        arm_tst(p,val1,Val2);
+        arm_tst(p,val1,val2);
     }
     return result;
 }
@@ -74,7 +74,7 @@ uint32_t arm_sub (arm_core p,uint32_t val1, uint32_t val2,uint8_t s,uint8_t c,ui
     return result;
 }
 
-uint32_t arm_orr(uint32_t val1, uint32_t val2,uint8_t s){
+uint32_t arm_orr(arm_core p,uint32_t val1, uint32_t val2,uint8_t s){
     uint32_t  result;
     result= val1 | val2;
     if(s){
@@ -83,7 +83,7 @@ uint32_t arm_orr(uint32_t val1, uint32_t val2,uint8_t s){
     return result;
 
 }
-uint32_t arm_add(arm_core p,uint32_t val1, uint32_t val2,uint8_t s,uint8_t c,uint8_t v,uint8_t s){
+uint32_t arm_add(arm_core p,uint32_t val1, uint32_t val2,uint8_t s,uint8_t c,uint8_t v){
     uint32_t  result;
     result = val1 + val2;
     if(s){
@@ -107,8 +107,8 @@ int arm_mov(arm_core p,uint8_t rd,uint32_t val_2,uint8_t s){
     uint32_t result=arm_read_register(p,rd);
     
     if (s && (!strcmp(arm_get_register_name(rd),"PC"))){
-        if (arm_current_mode_has_spsr()){
-            arm_write_cpsr(p,arm_read_spsr);
+        if (arm_current_mode_has_spsr(p)){
+            arm_write_cpsr(p,arm_read_spsr(p));
         } else {
             return -1;
         }
@@ -126,8 +126,8 @@ int arm_mvn(arm_core p,uint8_t rd, uint32_t val,uint8_t s){
     arm_write_register(p,rd, (~val));
     uint32_t result=arm_read_register(p,rd);
     if (s && (!strcmp(arm_get_register_name(rd),"PC"))){
-        if (arm_current_mode_has_spsr()){
-            arm_write_cpsr(p,arm_read_spsr);
+        if (arm_current_mode_has_spsr(p)){
+            arm_write_cpsr(p,arm_read_spsr(p));
         } else {
             return -1;
         }
@@ -140,11 +140,11 @@ int arm_mvn(arm_core p,uint8_t rd, uint32_t val,uint8_t s){
     return 0;
 }
 
-uint32_t arm_sbc(arm_core p,uint32_t val1, uint32_t val2, uint8_t c,uint8_t s){
+uint32_t arm_sbc(arm_core p,uint32_t val1, uint32_t val2, uint8_t c,uint8_t s,uint8_t v){
        uint32_t  result;
        result= val1 - val2 - !c;
         if(s){
-        arm_cmp(p,val1,(val2-(~(get_bit(arm_read_cpsr(p),29)))));
+        arm_cmp(p,val1,(val2-(~(get_bit(arm_read_cpsr(p),29)))),c,v);
         }
 
     return result;
@@ -157,7 +157,7 @@ uint32_t arm_adc(arm_core p,uint32_t val1,uint32_t val2, uint8_t c,uint8_t s){
       result= val1 + val2 + c;
 
      if(s){
-           arm_cmn(p,val1,(val2+((get_bit(arm_read_cpsr(p),29)))));
+           arm_cmn(p,val1,(val2+((get_bit(arm_read_cpsr(p),29)))),c);
      }
 
     return result;
@@ -373,25 +373,25 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
         uint8_t opcode = (uint8_t)((ins >> 21) & 0xf);
         switch (opcode){
             case 0:
-                res = arm_and(val_1,val_2);
+                res = arm_and(p,val_1,val_2,bit_s);
                 break;
             case 1:
-                res = arm_eor(val_1,val_2);
+                res = arm_eor(p,val_1,val_2,bit_s);
                 break;
             case 2:
-                res = arm_sub(val_1,val_2);
+                res = arm_sub(p,val_1,val_2,bit_s,bit_c,bit_v);
                 break;
             case 3:
                 arm_rsb(p,rd,val_1,val_2,bit_s,bit_c,bit_v);
                 return 0;
             case 4:
-                res = arm_add(val_1,val_2);
+                res = arm_add(p,val_1,val_2,bit_s,bit_c,bit_v);
                 break;
             case 5:
-                res = arm_adc(p,val_1,val_2,bit_c);
+                res = arm_adc(p,val_1,val_2,bit_c,bit_s);
                 break;
             case 6:
-                res = arm_sbc(p,val_1,val_2,bit_c);
+                res = arm_sbc(p,val_1,val_2,bit_c,bit_s,bit_v);
                 break;
             case 7:
                 arm_rsc(p,val_1,rd,val_2,bit_s,bit_c);
@@ -409,17 +409,17 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
                 arm_cmn(p,val_1,val_2,bit_c);
                 return 0;
             case 12:
-                res = arm_orr(val_1,val_2);
+                res = arm_orr(p,val_1,val_2,bit_s);
                 break;
             case 13:
                 if (arm_mov(p,rd,val_2,bit_s)==0)
                     break;
                 return UNDEFINED_INSTRUCTION;
             case 14:
-                res = arm_bic(val_1,val_2);
+                res = arm_bic(p,val_1,val_2,bit_s);
                 break;
             case 15:
-                if(arm_mvn(p,rd,val_2,bit_s)==0);
+                if(arm_mvn(p,rd,val_2,bit_s)==0)
                     break;
                 return UNDEFINED_INSTRUCTION;
             default:
