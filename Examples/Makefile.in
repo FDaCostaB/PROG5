@@ -89,6 +89,8 @@ POST_UNINSTALL = :
 @HAVE_ARM_COMPILER_TRUE@noinst_PROGRAMS = example1$(EXEEXT) \
 @HAVE_ARM_COMPILER_TRUE@	example2$(EXEEXT) example3$(EXEEXT) \
 @HAVE_ARM_COMPILER_TRUE@	example4$(EXEEXT) LdrStr$(EXEEXT) \
+@HAVE_ARM_COMPILER_TRUE@	LdrhStrh$(EXEEXT) LdmStm$(EXEEXT) \
+@HAVE_ARM_COMPILER_TRUE@	LdmStm2$(EXEEXT) \
 @HAVE_ARM_COMPILER_TRUE@	insertion_sort$(EXEEXT)
 subdir = Examples
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -101,9 +103,18 @@ CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 PROGRAMS = $(noinst_PROGRAMS)
+am_LdmStm_OBJECTS = LdmStm.$(OBJEXT)
+LdmStm_OBJECTS = $(am_LdmStm_OBJECTS)
+LdmStm_LDADD = $(LDADD)
+am_LdmStm2_OBJECTS = LdmStm2.$(OBJEXT)
+LdmStm2_OBJECTS = $(am_LdmStm2_OBJECTS)
+LdmStm2_LDADD = $(LDADD)
 am_LdrStr_OBJECTS = LdrStr.$(OBJEXT)
 LdrStr_OBJECTS = $(am_LdrStr_OBJECTS)
 LdrStr_LDADD = $(LDADD)
+am_LdrhStrh_OBJECTS = LdrhStrh.$(OBJEXT)
+LdrhStrh_OBJECTS = $(am_LdrhStrh_OBJECTS)
+LdrhStrh_LDADD = $(LDADD)
 am_example1_OBJECTS = example1.$(OBJEXT)
 example1_OBJECTS = $(am_example1_OBJECTS)
 example1_LDADD = $(LDADD)
@@ -153,11 +164,13 @@ AM_V_CCAS = $(am__v_CCAS_@AM_V@)
 am__v_CCAS_ = $(am__v_CCAS_@AM_DEFAULT_V@)
 am__v_CCAS_0 = @echo "  CCAS    " $@;
 am__v_CCAS_1 = 
-SOURCES = $(LdrStr_SOURCES) $(example1_SOURCES) $(example2_SOURCES) \
+SOURCES = $(LdmStm_SOURCES) $(LdmStm2_SOURCES) $(LdrStr_SOURCES) \
+	$(LdrhStrh_SOURCES) $(example1_SOURCES) $(example2_SOURCES) \
 	$(example3_SOURCES) $(example4_SOURCES) \
 	$(insertion_sort_SOURCES)
-DIST_SOURCES = $(LdrStr_SOURCES) $(example1_SOURCES) \
-	$(example2_SOURCES) $(example3_SOURCES) $(example4_SOURCES) \
+DIST_SOURCES = $(LdmStm_SOURCES) $(LdmStm2_SOURCES) $(LdrStr_SOURCES) \
+	$(LdrhStrh_SOURCES) $(example1_SOURCES) $(example2_SOURCES) \
+	$(example3_SOURCES) $(example4_SOURCES) \
 	$(insertion_sort_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
@@ -290,6 +303,9 @@ example2_SOURCES = example2.s
 example3_SOURCES = example3.s
 example4_SOURCES = example4.s
 LdrStr_SOURCES = LdrStr.s
+LdrhStrh_SOURCES = LdrhStrh.s
+LdmStm_SOURCES = LdmStm.s
+LdmStm2_SOURCES = LdmStm2.s
 insertion_sort_SOURCES = insertion_sort.c
 EXTRA_DIST = linker_script
 all: all-am
@@ -329,9 +345,21 @@ $(am__aclocal_m4_deps):
 clean-noinstPROGRAMS:
 	-test -z "$(noinst_PROGRAMS)" || rm -f $(noinst_PROGRAMS)
 
+LdmStm$(EXEEXT): $(LdmStm_OBJECTS) $(LdmStm_DEPENDENCIES) $(EXTRA_LdmStm_DEPENDENCIES) 
+	@rm -f LdmStm$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(LdmStm_OBJECTS) $(LdmStm_LDADD) $(LIBS)
+
+LdmStm2$(EXEEXT): $(LdmStm2_OBJECTS) $(LdmStm2_DEPENDENCIES) $(EXTRA_LdmStm2_DEPENDENCIES) 
+	@rm -f LdmStm2$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(LdmStm2_OBJECTS) $(LdmStm2_LDADD) $(LIBS)
+
 LdrStr$(EXEEXT): $(LdrStr_OBJECTS) $(LdrStr_DEPENDENCIES) $(EXTRA_LdrStr_DEPENDENCIES) 
 	@rm -f LdrStr$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(LdrStr_OBJECTS) $(LdrStr_LDADD) $(LIBS)
+
+LdrhStrh$(EXEEXT): $(LdrhStrh_OBJECTS) $(LdrhStrh_DEPENDENCIES) $(EXTRA_LdrhStrh_DEPENDENCIES) 
+	@rm -f LdrhStrh$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(LdrhStrh_OBJECTS) $(LdrhStrh_LDADD) $(LIBS)
 
 example1$(EXEEXT): $(example1_OBJECTS) $(example1_DEPENDENCIES) $(EXTRA_example1_DEPENDENCIES) 
 	@rm -f example1$(EXEEXT)

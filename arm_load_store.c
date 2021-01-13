@@ -170,7 +170,7 @@ int arm_load_store_multiple(arm_core p, uint32_t ins) {
                 if (get_bit(ins, ri) == 1){
                     arm_read_word(p,address,&value);
                     arm_write_register(p,ri,value);
-                    address = U?address + 4:address - 4;
+                    address = address + 4;
                 }
             }
             if (get_bit(ins, 15) == 1){
@@ -186,7 +186,7 @@ int arm_load_store_multiple(arm_core p, uint32_t ins) {
             for(int ri = 0;ri<=14;ri++){
                 if (get_bit(ins,ri) == 1){
                     arm_write_word(p,address,arm_read_register(p,ri));        
-                    address = U ? address + 4 : address - 4;
+                    address = address + 4 ;
                 }
         }
     }       
@@ -216,7 +216,7 @@ int arm_load_store_half(arm_core p, uint32_t ins) {
         address = U? arm_read_register(p,rn) + offset_8 : arm_read_register(p,rn) - offset_8 ;
     } else {
         address = arm_read_register(p,rn);
-        arm_write_register(p,rn,rn+rm_immedL);
+        arm_write_register(p,rn,arm_read_register(p,rn)+rm_immedL);
     }
 
     if(W==1&&P==0) printf("UNPREDICTABLE");
