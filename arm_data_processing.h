@@ -27,22 +27,22 @@ Contact: Guillaume.Huard@imag.fr
 
 
 void updateZN(arm_core p,uint32_t resultat);
-uint32_t arm_and (uint32_t val1, uint32_t val2);
-uint32_t arm_eor (uint32_t val1, uint32_t val2);
-uint32_t arm_sub (uint32_t val1, uint32_t val2);
-uint32_t arm_orr(uint32_t val1, uint32_t val2);
-uint32_t arm_add(uint32_t val1, uint32_t val2);
-uint32_t arm_bic(uint32_t val1, uint32_t val2);
+uint32_t arm_and (arm_core p,uint32_t val1, uint32_t val2 ,uint8_t s);
+uint32_t arm_eor (arm_core p,uint32_t val1, uint32_t val2,uint8_t s);
+uint32_t arm_sub (arm_core p,uint32_t val1, uint32_t val2,uint8_t s,uint8_t c,uint8_t v);
+uint32_t arm_orr(uint32_t val1, uint32_t val2,uint8_t s);
+uint32_t arm_add(arm_core p,uint32_t val1, uint32_t val2,uint8_t s,uint8_t c,uint8_t v,uint8_t s);
+uint32_t arm_bic(arm_core p,uint32_t val1, uint32_t val2,uint8_t s);
 int arm_mov(arm_core p,uint8_t rd,uint32_t val,uint8_t s);
-uint32_t arm_sbc(arm_core p,uint32_t val1, uint32_t val2, int c);
-uint32_t arm_adc(arm_core p,uint32_t val1,uint32_t val2, int c);
+uint32_t arm_sbc(arm_core p,uint32_t val1, uint32_t val2, uint8_t c,uint8_t s);
+uint32_t arm_adc(arm_core p,uint32_t val1,uint32_t val2, uint8_t c,uint8_t s);
 int arm_mvn(arm_core p,uint8_t rd, uint32_t val,uint8_t s);
 void arm_teq(arm_core p,uint32_t val1,uint32_t val2);
 void arm_tst(arm_core p,uint32_t val1,uint32_t val2);
-void arm_cmp(arm_core p,uint32_t val1,uint32_t val2, int c, int v);
-void arm_cmn(arm_core p,uint32_t  val1, uint32_t val2, int c);
-void arm_rsb(arm_core p,uint8_t rd, uint32_t val_1,uint32_t val_2,  int s, int c, int v);
-void arm_rsc(arm_core p,uint8_t rd,uint32_t val_1,uint32_t val_2,  int s, int c);
+void arm_cmp(arm_core p,uint32_t val1,uint32_t val2, uint8_t  c, uint8_t v);
+void arm_cmn(arm_core p,uint32_t  val1, uint32_t val2, uint8_t c);
+void arm_rsb(arm_core p, uint8_t rd, uint32_t val_1,uint32_t val_2,  uint8_t  s, uint8_t c, uint8_t v);
+void arm_rsc(arm_core p,uint8_t rd,uint32_t val_1,uint32_t val_2,  uint8_t s, uint8_t c);
 
 int arm_data_processing_shift(arm_core p, uint32_t ins);
 int arm_data_processing_immediate_msr(arm_core p, uint32_t ins);
