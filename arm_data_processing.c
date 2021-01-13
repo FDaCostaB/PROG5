@@ -83,25 +83,43 @@ uint32_t arm_bic(uint32_t val1, uint32_t val2){
     return result;
 }
 
-void arm_mov(arm_core p,uint8_t rd,uint32_t val_2,uint8_t s){ //Rd pas égale a 15
+int arm_mov(arm_core p,uint8_t rd,uint32_t val_2,uint8_t s){
     
-    arm_write_register(p,rd, val_2);
+    arm_write_register(p,rd,val_2);
     uint32_t result=arm_read_register(p,rd);
+    
+    if (s && (!strcmp(arm_get_register_name(rd),"PC"))){
+        if (arm_current_mode_has_spsr()){
+            arm_write_cpsr(p,arm_read_spsr);
+        } else {
+            return -1;
+        }
+
+    }
     //si le registre destination est en mode user
     if(s){
         updateZN(p,result);
     }
+    return 0;
 }
 
-void arm_mvn(arm_core p,uint8_t rd, uint32_t val,uint8_t s){
+int arm_mvn(arm_core p,uint8_t rd, uint32_t val,uint8_t s){
 
     arm_write_register(p,rd, (~val));
     uint32_t result=arm_read_register(p,rd);
+    if (s && (!strcmp(arm_get_register_name(rd),"PC"))){
+        if (arm_current_mode_has_spsr()){
+            arm_write_cpsr(p,arm_read_spsr);
+        } else {
+            return -1;
+        }
+
+    }
     //si le registre de dest est en mode user
     if(s){
         updateZN(p,result);
     }
-
+    return 0;
 }
 
 uint32_t arm_sbc(arm_core p,uint32_t val1, uint32_t val2, int c){
@@ -369,14 +387,16 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
                 res = arm_orr(val_1,val_2);
                 break;
             case 13:
-                arm_mov(p,rd,val_2,bit_s);
-                return 0;
+                if (arm_mov(p,rd,val_2,bit_s)==0)
+                    break;
+                return UNDEFINED_INSTRUCTION;
             case 14:
                 res = arm_bic(val_1,val_2);
                 break;
             case 15:
-                arm_mvn(p,rd,val_2,bit_s);
-                return 0;
+                if(arm_mvn(p,rd,val_2,bit_s)==0);
+                    break;
+                return UNDEFINED_INSTRUCTION;
             default:
                 return UNDEFINED_INSTRUCTION;
         }
