@@ -48,43 +48,61 @@ void updateZN(arm_core p,uint32_t result){
 
 }
 
-uint32_t arm_and (uint32_t val1, uint32_t val2){
+uint32_t arm_and (arm_core p,uint32_t val1, uint32_t val2 ,uint8_t s){
     uint32_t  result;
     result= val1 & val2;
+    if(s){
+        arm_tst(p,val1,Val2);
+    }
     return result;
 
 
 }
 
-uint32_t arm_eor (uint32_t val1, uint32_t val2){
+uint32_t arm_eor (arm_core p,uint32_t val1, uint32_t val2,uint8_t s){
     uint32_t  result;
     result= val1 ^  val2;
+    if(s){
+        arm_teq(p,val1,val2);
+    }
     return result;
 
 }
 
-uint32_t arm_sub (uint32_t val1, uint32_t val2){
+uint32_t arm_sub (arm_core p,uint32_t val1, uint32_t val2,uint8_t s,uint8_t c,uint8_t v){
     uint32_t  result;
     result= val1 -  val2;
+    if(s){
+        arm_cmp(p,val1,val2,c,v);
+    }
     return result;
 
 }
 
-uint32_t arm_orr(uint32_t val1, uint32_t val2){
+uint32_t arm_orr(uint32_t val1, uint32_t val2,uint8_t s){
     uint32_t  result;
     result= val1 | val2;
+    if(s){
+        updateZN(p,result);
+    }
     return result;
 
 }
-uint32_t arm_add(uint32_t val1, uint32_t val2){
+uint32_t arm_add(arm_core p,uint32_t val1, uint32_t val2,uint8_t s,uint8_t c,uint8_t v,uint8_t s){
     uint32_t  result;
     result = val1 + val2;
+    if(s){
+        arm_cmp(p,val1,val2,c,v);
+    }
     return result;
 }
 
-uint32_t arm_bic(uint32_t val1, uint32_t val2){
+uint32_t arm_bic(arm_core p,uint32_t val1, uint32_t val2,uint8_t s){
     uint32_t  result;
     result= val1 & (~val2);
+    if(s){
+        arm_tst(p,val1,(~val2));
+    }
     return result;
 }
 
@@ -98,17 +116,24 @@ void arm_mov(arm_core p,uint8_t rd,uint32_t val_2,uint8_t s){ //Uses ConditionPa
     }
 }
 
-uint32_t arm_sbc(arm_core p,uint32_t val1, uint32_t val2, int c){
+uint32_t arm_sbc(arm_core p,uint32_t val1, uint32_t val2, uint8_t c,uint8_t s){
        uint32_t  result;
        result= val1 - val2 - !c;
+        if(s){
+        arm_cmp(p,val1,(val2-(~(get_bit(arm_read_cpsr(p),29)))));
+        }
 
     return result;
 }
-uint32_t arm_adc(arm_core p,uint32_t val1,uint32_t val2, int c){
+uint32_t arm_adc(arm_core p,uint32_t val1,uint32_t val2, uint8_t c,uint8_t s){
 
       uint32_t result;
 
       result= val1 + val2 + c;
+
+     if(s){
+           arm_cmn(p,val1,(val2+((get_bit(arm_read_cpsr(p),29)))));
+     }
 
     return result;
 }
@@ -155,7 +180,7 @@ void arm_tst(arm_core p,uint32_t val1,uint32_t val2){
 
 }
 
-void arm_cmp(arm_core p,uint32_t val1,uint32_t val2, int c, int v){
+void arm_cmp(arm_core p,uint32_t val1,uint32_t val2, uint8_t  c, uint8_t v){
 
     uint32_t result;
 
@@ -183,7 +208,7 @@ void arm_cmp(arm_core p,uint32_t val1,uint32_t val2, int c, int v){
 
 }
 
-void arm_cmn(arm_core p,uint32_t  val1, uint32_t val2, int c){
+void arm_cmn(arm_core p,uint32_t  val1, uint32_t val2, uint8_t c){
 
     //Update flags after Rn + shifter_operand
 
@@ -213,7 +238,7 @@ void arm_cmn(arm_core p,uint32_t  val1, uint32_t val2, int c){
 
 }
 
-void arm_rsb(arm_core p, uint8_t rd, uint32_t val_1,uint32_t val_2,  int s, int c, int v){
+void arm_rsb(arm_core p, uint8_t rd, uint32_t val_1,uint32_t val_2,  uint8_t  s, uint8_t c, uint8_t v){
 
     //Rd := shifter_operand - Rn
     uint32_t result;
@@ -246,7 +271,7 @@ void arm_rsb(arm_core p, uint8_t rd, uint32_t val_1,uint32_t val_2,  int s, int 
 
 }
 
-void arm_rsc(arm_core p,uint8_t rd,uint32_t val_1,uint32_t val_2,  int s, int c){
+void arm_rsc(arm_core p,uint8_t rd,uint32_t val_1,uint32_t val_2,  uint8_t s, uint8_t c){
 
     uint32_t result;
 
@@ -335,19 +360,19 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 	uint8_t opcode = (uint8_t)((ins >> 21) & 0xf);
 	switch (opcode){
 		case 0:
-			res = arm_and(val_1,val_2);
+			res = arm_and(p,val_1,val_2,bit_s);
 			break;
 		case 1:
-			res = arm_eor(val_1,val_2);
+			res = arm_eor(p,val_1,val_2,bit_s);
 			break;
 		case 2:
-			res = arm_sub(val_1,val_2);
+			res = arm_sub(p,val_1,val_2,bit_s,bit_c,bit_v);
 			break;
 		case 3:
 			arm_rsb(p,rd,val_1,val_2,bit_s,bit_c,bit_v);
 			return 0;
 		case 4:
-            res = arm_add(val_1,val_2);
+            res = arm_add(p,val_1,val_2,bit_s,bit_c,bit_v);
 			break;
 		case 5:
 			res = arm_adc(p,val_1,val_2,bit_c);
@@ -371,13 +396,13 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 			arm_cmn(p,val_1,val_2,bit_c);
 			return 0;;
 		case 12:
-			res = arm_orr(val_1,val_2);
+			res = arm_orr(val_1,val_2,bit_s);
 			break;
 		case 13:
 			arm_mov(p,rd,val_2,bit_s);
 			return 0;
 		case 14:
-			res = arm_bic(val_1,val_2);
+			res = arm_bic(p,val_1,val_2,bit_s);
 			break;
 		case 15:
 			arm_mvn(p,rd,val_2,bit_s);
@@ -388,18 +413,21 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
     arm_write_register(p,rd,res);
     return 0;
 }
-/*
+
 int arm_data_processing_immediate_msr(arm_core p, uint32_t ins){
     uint8_t bits23_27 = (uint8_t) ((ins >> 23) & 0x1f);
     uint32_t field_mask = (ins >> 16) & 0xf; //adresse registre source
     uint32_t val_rotated = apply_rotation_imm(ins);
     uint32_t sbo = (ins >> 12) & 0xf; //adresse registre destination
+    if (get_bit(ins,25)==1){
+        uint32_t val_rotated = apply_rotation_imm(ins);
+    }
     if (ConditionPassed(sbo,ins)){
-        if (get_bit(ins,25)==1){
-            
-        }
+
     }
     return UNDEFINED_INSTRUCTION;
 }
+/*
 19-16 15-12 11-0
-Rn     Rd   shif*/
+Rn     Rd   shif*
+*/
