@@ -425,36 +425,37 @@ int arm_data_processing_immediate_msr(arm_core p, uint32_t ins){
     uint8_t fieldF = get_bit(ins,19);
 
     if(ConditionPassed(arm_read_cpsr(p),ins)){
-        if ((get_bits(ins,23,5)==0b00110) && (get_bits(ins,20,2)==0b10)){
-            arm_write_cpsr(p,val_rotated);
-        }
-        fieldC ? tmp = 0x000000FF : 0x00000000;
-        fieldX ? tmp2 = 0x0000FF00 : 0x00000000;
-        fieldS ? tmp3 = 0x00FF0000 : 0x00000000;
-        fieldF ? tmp4 = 0xFF000000 : 0x00000000; 
-        bytemask = tmp | tmp2 | tmp3 | tmp4;
-        if (bit_r == 0){
-            if(arm_in_a_privileged_mode(p)) {
-                if ((val_rotated & StateMask) != 0)
-                    return UNDEFINED_INSTRUCTION;
+        if ((get_bits(ins,23,5)==0b00110) && (get_bits(ins,20,2)==0b10)){ //est msr
+            if ((val_rotated & UnallocMask) !=0) return UNDEFINED_INSTRUCTION;
+            fieldC ? tmp = 0x000000FF : 0x00000000;
+            fieldX ? tmp2 = 0x0000FF00 : 0x00000000;
+            fieldS ? tmp3 = 0x00FF0000 : 0x00000000;
+            fieldF ? tmp4 = 0xFF000000 : 0x00000000; 
+            bytemask = tmp | tmp2 | tmp3 | tmp4;
+            if (bit_r == 0){
+                if(arm_in_a_privileged_mode(p)) {
+                    if ((val_rotated & StateMask) != 0)
+                        return UNDEFINED_INSTRUCTION;
+                    else{
+                        mask = bytemask & (UserMask | PrivMask);
+                    }
+                }
                 else{
-                    mask = bytemask & (UserMask | PrivMask);
+                    mask = bytemask & UserMask;
+                }
+                arm_write_cpsr(p,((arm_read_cpsr(p) & (~mask)) | (val_rotated & mask)));
+                return 0;
+                
+            } else { //bit_r == 1
+                if (arm_current_mode_has_spsr(p)){
+                    mask = bytemask & (UserMask | PrivMask | StateMask);
+                    arm_write_spsr(p,((arm_read_spsr(p) & (~mask))|(val_rotated & mask)));
+                    return 0;
+                } else {
+                    return UNDEFINED_INSTRUCTION;
                 }
             }
-            else{
-                mask = bytemask & UserMask;
-            }
-            arm_write_cpsr(p,((arm_read_cpsr(p) & (~mask)) | (val_rotated & mask)));
-            
-        } else { //bit_r == 1
-            if (arm_current_mode_has_spsr(p)){
-                mask = bytemask & (UserMask | PrivMask | StateMask);
-                arm_write_spsr(p,((arm_read_spsr(p) & (~mask))|(val_rotated & mask)));
-            } else {
-                return UNDEFINED_INSTRUCTION;
-            }
         }
-        
     }
     return UNDEFINED_INSTRUCTION;
 }
