@@ -27,9 +27,10 @@ Contact: Guillaume.Huard@imag.fr
 #include <stdlib.h>
 
 int arm_branch(arm_core p, uint32_t ins) {
+    uint8_t L = get_bit(ins,24);
     if(ConditionPassed(arm_read_cpsr(p),ins)){
-        if( (ins>>24) & 1 ) arm_write_register(p, 14, arm_read_register(p,15));
-        uint32_t val = ins | (get_bit(ins, 24) ? ~0<<25: 0);
+        if( L==1 ) arm_write_register(p, 14, arm_read_register(p,15)-4);
+        uint32_t val = (get_bit(ins, 23) ?ins |  ~0<<23 : ins &  ~0>>(32-23) );
         val = val << 2;
         arm_write_register(p, 15, arm_read_register(p,15)+val);
     }
