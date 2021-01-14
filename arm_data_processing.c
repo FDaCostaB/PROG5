@@ -101,43 +101,24 @@ uint32_t arm_bic(arm_core p,uint32_t val1, uint32_t val2,uint8_t s){
     return result;
 }
 
-int arm_mov(arm_core p,uint8_t rd,uint32_t val_2,uint8_t s){
+void arm_mov(arm_core p,uint8_t rd,uint32_t val_2,uint8_t s){
     
     arm_write_register(p,rd,val_2);
     uint32_t result=arm_read_register(p,rd);
-    
-    if (s && (!strcmp(arm_get_register_name(rd),"PC"))){
-        if (arm_current_mode_has_spsr(p)){
-            arm_write_cpsr(p,arm_read_spsr(p));
-        } else {
-            return -1;
-        }
-
-    }
     //si le registre destination est en mode user
     if(s){
         updateZN(p,result);
     }
-    return 0;
 }
 
-int arm_mvn(arm_core p,uint8_t rd, uint32_t val,uint8_t s){
+void arm_mvn(arm_core p,uint8_t rd, uint32_t val,uint8_t s){
 
     arm_write_register(p,rd, (~val));
     uint32_t result=arm_read_register(p,rd);
-    if (s && (!strcmp(arm_get_register_name(rd),"PC"))){
-        if (arm_current_mode_has_spsr(p)){
-            arm_write_cpsr(p,arm_read_spsr(p));
-        } else {
-            return -1;
-        }
-
-    }
     //si le registre de dest est en mode user
     if(s){
         updateZN(p,result);
     }
-    return 0;
 }
 
 uint32_t arm_sbc(arm_core p,uint32_t val1, uint32_t val2, uint8_t c,uint8_t s,uint8_t v){
@@ -412,16 +393,14 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
                 res = arm_orr(p,val_1,val_2,bit_s);
                 break;
             case 13:
-                if (arm_mov(p,rd,val_2,bit_s)==0)
-                    break;
-                return UNDEFINED_INSTRUCTION;
+                arm_mov(p,rd,val_2,bit_s);
+                return 0;
             case 14:
                 res = arm_bic(p,val_1,val_2,bit_s);
                 break;
             case 15:
-                if(arm_mvn(p,rd,val_2,bit_s)==0)
-                    break;
-                return UNDEFINED_INSTRUCTION;
+                arm_mvn(p,rd,val_2,bit_s);
+                return 0;
             default:
                 return UNDEFINED_INSTRUCTION;
         }

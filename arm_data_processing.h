@@ -34,10 +34,10 @@ uint32_t arm_sub (arm_core p,uint32_t val1, uint32_t val2,uint8_t s,uint8_t c,ui
 uint32_t arm_orr(arm_core p,uint32_t val1, uint32_t val2,uint8_t s);
 uint32_t arm_add(arm_core p,uint32_t val1, uint32_t val2,uint8_t s,uint8_t c,uint8_t v);
 uint32_t arm_bic(arm_core p,uint32_t val1, uint32_t val2,uint8_t s);
-int arm_mov(arm_core p,uint8_t rd,uint32_t val,uint8_t s);
+void arm_mov(arm_core p,uint8_t rd,uint32_t val,uint8_t s);
 uint32_t arm_sbc(arm_core p,uint32_t val1, uint32_t val2, uint8_t c,uint8_t s, uint8_t v);
 uint32_t arm_adc(arm_core p,uint32_t val1,uint32_t val2, uint8_t c,uint8_t s);
-int arm_mvn(arm_core p,uint8_t rd, uint32_t val,uint8_t s);
+void arm_mvn(arm_core p,uint8_t rd, uint32_t val,uint8_t s);
 void arm_teq(arm_core p,uint32_t val1,uint32_t val2);
 void arm_tst(arm_core p,uint32_t val1,uint32_t val2);
 void arm_cmp(arm_core p,uint32_t val1,uint32_t val2, uint8_t  c, uint8_t v);
