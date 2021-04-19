@@ -1,12 +1,14 @@
 # Projet PROG5 UGA (12/2020)
 
-Compilation 
-git clone https://github.com/FDaCostaB/PROG5.git 
-cd PROG5/ 
-./configure CFLAGS='-Wall -Werror -g' 
-make
+Compilation :
+
+'git clone https://github.com/FDaCostaB/PROG5.git '
+'cd PROG5/'
+'./configure CFLAGS='-Wall -Werror -g' 
+'make'
 
 Execution - More info(french) on 'sujet.pdf' part 2.2 Utilisation
+
 In a first shell:
 './arm_simulator' displaying some TCP port
 
