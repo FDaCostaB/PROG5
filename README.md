@@ -1,4 +1,4 @@
-# Projet PROG5 UGA (12/2020)
+# Projet PROG5 UGA (01/2021)
 
 Tested arm operation:
 B/BL
