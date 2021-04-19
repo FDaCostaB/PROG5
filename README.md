@@ -1,5 +1,10 @@
 # Projet PROG5 UGA (12/2020)
 
+Tested arm operation:
+B/BL
+AND, EOR, SUB, RSB, ADD, ADC, SBC, RSC, TST,TEQ, CMP, CMN, ORR, MOV
+LDR, LDRB, LDRH, STR, STRB, STRH,LDM(1), STM(1)
+
 Compilation :
 
 'git clone https://github.com/FDaCostaB/PROG5.git '
